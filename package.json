@@ -4,11 +4,29 @@
   "description": "Valu Digital's React component library for the WordPress block editor.",
   "license": "GPL-2.0-or-later",
   "author": "Valu Digital Oy",
+  "homepage": "https://github.com/valu-digital/valu-block-components#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/valu-digital/valu-block-components.git"
+  },
+  "bugs": {
+    "url": "https://github.com/valu-digital/valu-block-components/issues"
+  },
+  "keywords": [
+    "wordpress",
+    "gutenberg",
+    "block-editor",
+    "content-picker",
+    "valu"
+  ],
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "dist",
     "README.md"
@@ -34,7 +52,8 @@
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "clean": "rimraf dist",
-    "playground": "npm run build && cd example && npm run playground"
+    "playground": "npm run build && cd example && npm run playground",
+    "prepublishOnly": "npm run clean && npm run typecheck && npm test && npm run build"
   },
   "peerDependencies": {
     "@wordpress/a11y": "^4.44.0",
