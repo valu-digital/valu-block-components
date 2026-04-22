@@ -98,12 +98,34 @@ push.
 
 ### One-time setup per repo
 
-- **`NPM_TOKEN` secret** — Generate a *Classic Automation* token on
-  npmjs.com → Account → Access Tokens (granular tokens can't publish).
-  Add it to GitHub → Settings → Secrets and variables → Actions →
-  `NPM_TOKEN`.
-- Ensure the `@valu` npm org exists and your account is a member with
-  publish rights on `@valu/block-components`.
+The workflow uses **npm Trusted Publishers** (OIDC) — GitHub mints a
+short-lived token per workflow run. No long-lived `NPM_TOKEN` secret
+is required.
+
+To (re-)establish the trust:
+
+1. On npmjs.com → `@valu/block-components` → **Settings** →
+   **Trusted Publisher** → **GitHub Actions**.
+2. Fill in:
+   - **Organization or user**: `valu-digital`
+   - **Repository**: `valu-block-components`
+   - **Workflow filename**: `publish.yml`
+   - **Environment name**: *leave blank* (or set it if you configure a
+     GitHub Actions environment with protection rules — see below).
+3. **Set up connection**.
+4. Optionally, tighten package access to **"Require two-factor
+   authentication and disallow tokens"** — with Trusted Publisher
+   active, CI publishes via OIDC and humans publish via 2FA, so
+   long-lived tokens are no longer needed for any path.
+5. Ensure the `@valu` npm org exists and your account has publish
+   rights on `@valu/block-components`.
+
+> **About environments**: GitHub Actions *environments* are optional
+> deployment gates. Configuring one in the repo Settings lets you
+> require reviewer approval, pin a branch/tag pattern, or keep separate
+> secrets per environment before a publish job runs. If you set one up,
+> put its name in both the npm Trusted Publisher form and as `environment:
+> <name>` in the workflow's job spec. Skip if you don't need the gate.
 
 ### Manual publish (fallback)
 
@@ -166,8 +188,13 @@ reading `git log`:
 - **npm publish fails with `E402 This package requires payment`** —
   the `--access public` flag is missing (or `publishConfig.access` was
   removed). Scoped packages default to private.
-- **npm publish fails with `ENEEDAUTH` or 401 in CI** — `NPM_TOKEN`
-  secret is missing, expired, or not an Automation token.
+- **npm publish fails with `ENEEDAUTH` / 401 / "Trusted publisher
+  requirements not met"** — the Trusted Publisher config on npm
+  doesn't match the workflow. Double-check the org/repo/filename on
+  npmjs.com's Trusted Publisher page line up with
+  `valu-digital` / `valu-block-components` / `publish.yml`. Also
+  confirm `permissions: id-token: write` is still set in the
+  workflow (required for OIDC).
 - **Workflow publishes but provenance link is broken** — the workflow
   must have `permissions: id-token: write` (it does) AND run on a
   GitHub-hosted runner (not a self-hosted one) for the OIDC token to

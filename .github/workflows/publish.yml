@@ -7,6 +7,11 @@ name: Publish to npm
 #                        # creates a commit, tags it v<new-version>
 #   git push --follow-tags
 #
+# Authenticates to npm via **Trusted Publisher** (OIDC) — no
+# NPM_TOKEN secret. The npm package must have GitHub Actions
+# configured as a Trusted Publisher pointing at this repo + this
+# workflow filename. See DEVELOPERS.md for setup.
+#
 # The action below picks up the tag, verifies it matches
 # package.json's version, runs the full typecheck + test + build, and
 # publishes with npm provenance.
@@ -63,9 +68,11 @@ jobs:
         run: npm run build
 
       - name: Publish
+        # Uses npm Trusted Publisher (OIDC) — no NPM_TOKEN needed.
+        # GitHub mints a short-lived token from the id-token: write
+        # permission above; npm CLI detects and exchanges it automatically.
+        #
         # --ignore-scripts skips the already-run prepublishOnly hook so
         # we don't re-run typecheck/test/build. --provenance attests the
         # build chain on npm for supply-chain transparency.
         run: npm publish --access public --provenance --ignore-scripts
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
