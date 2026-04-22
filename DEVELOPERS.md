@@ -201,13 +201,22 @@ reading `git log`:
   confirm `permissions: id-token: write` is still set in the
   workflow (required for OIDC).
 - **npm publish fails with `E404` after the provenance statement
-  was already signed** — counter-intuitive, but this is usually a
-  CLI-version mismatch: provenance signing works on npm ≥ 9.5, but
-  Trusted-Publisher *registry* auth via OIDC requires npm ≥ 11.5.1.
-  The workflow upgrades the CLI in-place; if you changed that step,
-  bring it back. Also check the Trusted Publisher connection on
-  npmjs.com — a 404 also appears when the OIDC claims don't match
-  the configured trust (org / repo / workflow filename).
+  was already signed** — two unrelated causes for the same error:
+  1. **CLI too old.** Provenance signing works on npm ≥ 9.5, but
+     Trusted-Publisher *registry* auth via OIDC requires npm ≥ 11.5.1.
+     The workflow pins `npm@11.5.1` via Corepack; if you removed that
+     step, bring it back.
+  2. **`.npmrc` has an `_authToken` line.** Trusted Publisher's docs
+     are explicit: any `_authToken` line in `.npmrc` (even an empty
+     one) blocks OIDC fallback, so npm tries an empty-token PUT and
+     the registry answers 404. `actions/setup-node`'s `registry-url:`
+     input is the sneaky culprit — it writes that line automatically.
+     Leave `registry-url` OFF for Trusted Publisher workflows
+     (`registry.npmjs.org` is the npm default anyway).
+
+  If both are correct, verify the Trusted Publisher connection on
+  npmjs.com — a mismatched org / repo / workflow filename also shows
+  up as 404.
 - **Workflow publishes but provenance link is broken** — the workflow
   must have `permissions: id-token: write` (it does) AND run on a
   GitHub-hosted runner (not a self-hosted one) for the OIDC token to
