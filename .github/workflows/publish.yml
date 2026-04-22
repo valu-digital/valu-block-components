@@ -40,9 +40,18 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
+
+      - name: Upgrade npm CLI
+        # Node 22 ships npm 10.9.x. Trusted Publisher (OIDC-based
+        # registry auth, not just provenance signing) requires
+        # npm ≥ 11.5.1 — older CLIs sign provenance fine but still
+        # attempt to PUT the package without auth, which scoped-write
+        # rejects as HTTP 404. Pinning to the latest 11.x keeps us on
+        # the supported path without surprise majors.
+        run: npm install --global npm@^11
 
       - name: Install deps
         run: npm ci

@@ -84,11 +84,14 @@ push.
 ### What the workflow does
 
 1. Checks out the tagged commit.
-2. `npm ci` with Node 20 and the npm cache primed.
-3. **Version check** — refuses to publish if the tag suffix doesn't match
+2. Node 22 + `npm install -g npm@^11` — Trusted Publisher's OIDC-based
+   registry auth requires npm ≥ 11.5.1; Node 22 ships npm 10.9, so we
+   upgrade in-place.
+3. `npm ci` with the npm cache primed.
+4. **Version check** — refuses to publish if the tag suffix doesn't match
    `package.json` (prevents rogue tags from shipping an unrelated version).
-4. `npm run typecheck && npm test && npm run build`.
-5. `npm publish --access public --provenance --ignore-scripts`.
+5. `npm run typecheck && npm test && npm run build`.
+6. `npm publish --access public --provenance --ignore-scripts`.
    - `--access public` is required on scoped (`@valu/…`) packages to publish
      them to the free tier (also baked into `publishConfig` in package.json).
    - `--provenance` attests the build chain on npm; users can verify which
@@ -195,6 +198,14 @@ reading `git log`:
   `valu-digital` / `valu-block-components` / `publish.yml`. Also
   confirm `permissions: id-token: write` is still set in the
   workflow (required for OIDC).
+- **npm publish fails with `E404` after the provenance statement
+  was already signed** — counter-intuitive, but this is usually a
+  CLI-version mismatch: provenance signing works on npm ≥ 9.5, but
+  Trusted-Publisher *registry* auth via OIDC requires npm ≥ 11.5.1.
+  The workflow upgrades the CLI in-place; if you changed that step,
+  bring it back. Also check the Trusted Publisher connection on
+  npmjs.com — a 404 also appears when the OIDC claims don't match
+  the configured trust (org / repo / workflow filename).
 - **Workflow publishes but provenance link is broken** — the workflow
   must have `permissions: id-token: write` (it does) AND run on a
   GitHub-hosted runner (not a self-hosted one) for the OIDC token to
