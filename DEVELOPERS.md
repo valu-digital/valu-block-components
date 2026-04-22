@@ -84,9 +84,11 @@ push.
 ### What the workflow does
 
 1. Checks out the tagged commit.
-2. Node 22 + `npm install -g npm@^11` — Trusted Publisher's OIDC-based
-   registry auth requires npm ≥ 11.5.1; Node 22 ships npm 10.9, so we
-   upgrade in-place.
+2. Node 22 + Corepack-pinned npm 11.5.1 — Trusted Publisher's
+   OIDC-based registry auth requires npm ≥ 11.5.1; Node 22 ships
+   npm 10.9, so Corepack swaps it in. (Corepack is preferred over
+   `npm install -g npm@11` because the Node 22 tool-cache image
+   currently has a broken global npm that can't self-upgrade.)
 3. `npm ci` with the npm cache primed.
 4. **Version check** — refuses to publish if the tag suffix doesn't match
    `package.json` (prevents rogue tags from shipping an unrelated version).
