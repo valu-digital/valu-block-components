@@ -40,7 +40,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'npm'
           # Intentionally NO `registry-url:` — that option writes an
           # `.npmrc` with `//registry.npmjs.org/:_authToken=…` which
@@ -49,23 +49,36 @@ jobs:
           # registry.npmjs.org is the default anyway, so we don't
           # need to set it.
 
-      - name: Pin npm to 11.x via Corepack
-        # Node 22 ships npm 10.9.x. Trusted Publisher (OIDC-based
-        # registry auth, not just provenance signing) requires
-        # npm ≥ 11.5.1 — older CLIs sign provenance fine but still
-        # attempt to PUT the package without auth, which scoped-write
-        # rejects as HTTP 404.
-        #
-        # We can't `npm install -g npm@11` here because the current
-        # Node 22 tool-cache images ship a globally-installed npm 10
-        # that is missing a transitive dep (`promise-retry`), so the
-        # install crashes before it can replace itself. Corepack (the
-        # Node-bundled package-manager shim) swaps the active npm
-        # without touching the broken global install.
+      - name: Pin npm to latest 11.x via Corepack
+        # Trusted Publisher (OIDC-based registry auth) requires
+        # npm ≥ 11.5.1. Node 24 ships npm 11.2 which is too old,
+        # so we use Corepack to activate the latest 11.x in place.
         run: |
+          echo "Before:"
+          which npm
           npm --version
-          corepack prepare npm@11.5.1 --activate
+          corepack prepare npm@latest --activate
+          echo "After:"
+          which npm
           npm --version
+
+      - name: Dump auth / OIDC state for debugging
+        # If Trusted Publisher ever 404s or ENEEDAUTHs again, these
+        # outputs pinpoint the cause: missing OIDC env, stray .npmrc
+        # authToken, or CLI version still on 10.x.
+        run: |
+          echo "=== OIDC env presence ==="
+          echo "ACTIONS_ID_TOKEN_REQUEST_URL   = ${ACTIONS_ID_TOKEN_REQUEST_URL:+SET}${ACTIONS_ID_TOKEN_REQUEST_URL:-UNSET}"
+          echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN = ${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+SET}${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-UNSET}"
+          echo
+          echo "=== .npmrc state (Trusted Publisher requires NO _authToken) ==="
+          echo "--- project ./.npmrc ---"
+          cat .npmrc 2>/dev/null || echo "(absent)"
+          echo "--- home ~/.npmrc ---"
+          cat ~/.npmrc 2>/dev/null || echo "(absent)"
+          echo
+          echo "=== effective npm config (filtered) ==="
+          npm config list 2>&1 | grep -Ei 'registry|authToken|provenance|auth-type' || true
 
       - name: Install deps
         run: npm ci
