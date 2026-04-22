@@ -1,0 +1,71 @@
+name: Publish to npm
+
+# Publishes the package to the npm registry whenever a version tag is
+# pushed. Canonical release flow:
+#
+#   npm version patch    # or minor / major — edits package.json,
+#                        # creates a commit, tags it v<new-version>
+#   git push --follow-tags
+#
+# The action below picks up the tag, verifies it matches
+# package.json's version, runs the full typecheck + test + build, and
+# publishes with npm provenance.
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+  id-token: write # required for `npm publish --provenance`
+
+concurrency:
+  group: npm-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish @valu/block-components
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Verify tag matches package.json version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          echo "tag:         $TAG_VERSION"
+          echo "package.json: $PKG_VERSION"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag version ($TAG_VERSION) does not match package.json ($PKG_VERSION). Refusing to publish."
+            exit 1
+          fi
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish
+        # --ignore-scripts skips the already-run prepublishOnly hook so
+        # we don't re-run typecheck/test/build. --provenance attests the
+        # build chain on npm for supply-chain transparency.
+        run: npm publish --access public --provenance --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
