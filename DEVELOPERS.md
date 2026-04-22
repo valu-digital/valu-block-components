@@ -84,16 +84,22 @@ push.
 ### What the workflow does
 
 1. Checks out the tagged commit.
-2. Node 22 + Corepack-pinned npm 11.5.1 — Trusted Publisher's
-   OIDC-based registry auth requires npm ≥ 11.5.1; Node 22 ships
-   npm 10.9, so Corepack swaps it in. (Corepack is preferred over
-   `npm install -g npm@11` because the Node 22 tool-cache image
-   currently has a broken global npm that can't self-upgrade.)
+2. Node 24 + Corepack-pinned `npm@latest` (≥ 11.5.1). Trusted
+   Publisher's OIDC-based registry auth requires npm ≥ 11.5.1;
+   Node 24 ships npm 11.2. Corepack swaps in the latest 11.x
+   without touching the pre-installed global npm.
 3. `npm ci` with the npm cache primed.
 4. **Version check** — refuses to publish if the tag suffix doesn't match
    `package.json` (prevents rogue tags from shipping an unrelated version).
 5. `npm run typecheck && npm test && npm run build`.
 6. `npm publish --access public --provenance --ignore-scripts`.
+
+> **Note on `--provenance`:** this flag produces a sigstore attestation
+> linking each published tarball to the specific GitHub Actions run
+> that built it. It requires the **GitHub repo to be public** — npm's
+> verifier returns HTTP 422 for provenance bundles from private repos.
+> If the repo ever has to go private, drop `--provenance`; OIDC-based
+> publishing via Trusted Publisher still works without it.
    - `--access public` is required on scoped (`@valu/…`) packages to publish
      them to the free tier (also baked into `publishConfig` in package.json).
    - `--provenance` attests the build chain on npm; users can verify which
@@ -204,7 +210,7 @@ reading `git log`:
   was already signed** — two unrelated causes for the same error:
   1. **CLI too old.** Provenance signing works on npm ≥ 9.5, but
      Trusted-Publisher *registry* auth via OIDC requires npm ≥ 11.5.1.
-     The workflow pins `npm@11.5.1` via Corepack; if you removed that
+     The workflow pins `npm@latest` via Corepack; if you removed that
      step, bring it back.
   2. **`.npmrc` has an `_authToken` line.** Trusted Publisher's docs
      are explicit: any `_authToken` line in `.npmrc` (even an empty
@@ -217,6 +223,11 @@ reading `git log`:
   If both are correct, verify the Trusted Publisher connection on
   npmjs.com — a mismatched org / repo / workflow filename also shows
   up as 404.
+- **npm publish fails with `E422 Unprocessable Entity — Unsupported
+  GitHub Actions source repository visibility: "private"`** — you
+  re-added `--provenance` on a private repo. npm's sigstore verifier
+  requires a public source repo to verify provenance bundles. Either
+  drop `--provenance` or make the GitHub repo public.
 - **Workflow publishes but provenance link is broken** — the workflow
   must have `permissions: id-token: write` (it does) AND run on a
   GitHub-hosted runner (not a self-hosted one) for the OIDC token to

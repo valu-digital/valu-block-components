@@ -62,24 +62,6 @@ jobs:
           which npm
           npm --version
 
-      - name: Dump auth / OIDC state for debugging
-        # If Trusted Publisher ever 404s or ENEEDAUTHs again, these
-        # outputs pinpoint the cause: missing OIDC env, stray .npmrc
-        # authToken, or CLI version still on 10.x.
-        run: |
-          echo "=== OIDC env presence ==="
-          echo "ACTIONS_ID_TOKEN_REQUEST_URL   = ${ACTIONS_ID_TOKEN_REQUEST_URL:+SET}${ACTIONS_ID_TOKEN_REQUEST_URL:-UNSET}"
-          echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN = ${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+SET}${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-UNSET}"
-          echo
-          echo "=== .npmrc state (Trusted Publisher requires NO _authToken) ==="
-          echo "--- project ./.npmrc ---"
-          cat .npmrc 2>/dev/null || echo "(absent)"
-          echo "--- home ~/.npmrc ---"
-          cat ~/.npmrc 2>/dev/null || echo "(absent)"
-          echo
-          echo "=== effective npm config (filtered) ==="
-          npm config list 2>&1 | grep -Ei 'registry|authToken|provenance|auth-type' || true
-
       - name: Install deps
         run: npm ci
 
@@ -108,7 +90,10 @@ jobs:
         # GitHub mints a short-lived token from the id-token: write
         # permission above; npm CLI detects and exchanges it automatically.
         #
-        # --ignore-scripts skips the already-run prepublishOnly hook so
-        # we don't re-run typecheck/test/build. --provenance attests the
-        # build chain on npm for supply-chain transparency.
+        # --provenance attaches a sigstore attestation linking this
+        # tarball to this workflow run. REQUIRES the GitHub repo to be
+        # public (npm's verifier refuses provenance bundles from
+        # private repos with HTTP 422).
+        #
+        # --ignore-scripts skips the already-run prepublishOnly hook.
         run: npm publish --access public --provenance --ignore-scripts
