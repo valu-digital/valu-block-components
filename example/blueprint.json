@@ -1,0 +1,40 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"meta": {
+		"title": "Valu ContentPicker Demo",
+		"description": "A seeded WP environment to try the @valu/block-components ContentPicker in the editor.",
+		"author": "Valu Digital"
+	},
+	"preferredVersions": {
+		"php": "8.3",
+		"wp": "latest"
+	},
+	"phpExtensionBundles": ["kitchen-sink"],
+	"features": {
+		"networking": true
+	},
+	"login": true,
+	"landingPage": "/wp-admin/post-new.php?post_type=post",
+	"steps": [
+		{
+			"step": "defineWpConfigConsts",
+			"consts": {
+				"WP_DEBUG": true,
+				"WP_DEBUG_LOG": true,
+				"WP_DEBUG_DISPLAY": false
+			}
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require '/wordpress/wp-load.php'; if (get_option('valu_cp_demo_seeded')) { return; } wp_insert_term('Engineering', 'category', ['description' => 'Engineering posts']); wp_insert_term('Design', 'category', ['description' => 'Design posts']); wp_insert_term('Playground', 'category', ['description' => 'Playground posts']); $author = wp_insert_user(['user_login' => 'lauri', 'user_pass' => 'password', 'user_email' => 'lauri@example.test', 'first_name' => 'Lauri', 'last_name' => 'Saarni', 'display_name' => 'Lauri Saarni', 'role' => 'author']); $author2 = wp_insert_user(['user_login' => 'anna', 'user_pass' => 'password', 'user_email' => 'anna@example.test', 'first_name' => 'Anna', 'last_name' => 'Kumpu', 'display_name' => 'Anna Kumpu', 'role' => 'author']); $titles = ['Getting started with block themes', 'Gutenbrain: the WP dev toolkit at Valu', 'Designing patterns that scale', 'Accessible color systems for WordPress', 'Shipping fluid typography', 'The case for container queries', 'Content picker UX patterns', 'Building a component library', 'Featured image best practices', 'Playground blueprints in practice']; foreach ($titles as $i => $t) { $cats = [get_term_by('name', ['Engineering','Design','Playground'][$i % 3], 'category')->term_id]; wp_insert_post(['post_title' => $t, 'post_content' => '<!-- wp:paragraph --><p>Seed content for ' . $t . '.</p><!-- /wp:paragraph -->', 'post_status' => 'publish', 'post_author' => $i % 2 === 0 ? $author : $author2, 'post_category' => $cats, 'post_date' => date('Y-m-d H:i:s', time() - $i * 86400)]); } $pages = ['About Valu Digital', 'Services', 'Case studies', 'Careers', 'Contact']; foreach ($pages as $t) { wp_insert_post(['post_title' => $t, 'post_content' => '<!-- wp:paragraph --><p>Seed page content for ' . $t . '.</p><!-- /wp:paragraph -->', 'post_status' => 'publish', 'post_type' => 'page']); } wp_insert_post(['post_title' => 'Try the ContentPicker', 'post_content' => '<!-- wp:valu/cp-demo /-->', 'post_status' => 'draft']); update_option('valu_cp_demo_seeded', 1);"
+		},
+		{
+			"step": "activatePlugin",
+			"pluginPath": "example/valu-cp-demo.php"
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require '/wordpress/wp-load.php'; if (get_option('valu_cp_demo_contacts_seeded')) { return; } if (!post_type_exists('valu_contact')) { return; } $contacts = [['Maija Mäkinen','maija@example.test','+358 40 111 1111','Engineering'],['Aleksi Virtanen','aleksi@example.test','+358 40 222 2222','Design'],['Sara Saarinen','sara@example.test','+358 40 333 3333','Engineering'],['Jussi Järvinen','jussi@example.test','+358 40 444 4444','Business'],['Elina Koskinen','elina@example.test','+358 40 555 5555','Design'],['Petri Peltonen','petri@example.test','+358 40 666 6666','Business']]; foreach ($contacts as $c) { $id = wp_insert_post(['post_title' => $c[0], 'post_content' => '<!-- wp:paragraph --><p>' . esc_html($c[0] . ' — ' . $c[3]) . '</p><!-- /wp:paragraph -->', 'post_status' => 'publish', 'post_type' => 'valu_contact']); if (!is_wp_error($id)) { update_post_meta($id, 'email', $c[1]); update_post_meta($id, 'phone', $c[2]); update_post_meta($id, 'department', $c[3]); } } flush_rewrite_rules(); update_option('valu_cp_demo_contacts_seeded', 1);"
+		}
+	]
+}

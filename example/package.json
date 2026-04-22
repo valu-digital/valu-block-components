@@ -1,0 +1,20 @@
+{
+  "name": "valu-cp-demo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Playground demo plugin for @valu/block-components ContentPicker.",
+  "license": "GPL-2.0-or-later",
+  "scripts": {
+    "build": "wp-scripts build --webpack-copy-php",
+    "start": "wp-scripts start --webpack-copy-php",
+    "playground": "npm run build && npx -y @wp-playground/cli@latest start --blueprint=./blueprint.json",
+    "playground:quiet": "npm run build && npx -y @wp-playground/cli@latest start --blueprint=./blueprint.json --skip-browser"
+  },
+  "dependencies": {
+    "@valu/block-components": "file:.."
+  },
+  "devDependencies": {
+    "@types/wordpress__blocks": "^12.5.16",
+    "@wordpress/scripts": "^30.0.0"
+  }
+}

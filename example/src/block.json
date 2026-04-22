@@ -1,0 +1,40 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "valu/cp-demo",
+	"title": "Content Picker Demo",
+	"category": "widgets",
+	"icon": "admin-links",
+	"description": "Demo block showing the @valu/block-components ContentPicker.",
+	"keywords": ["valu", "content", "picker"],
+	"textdomain": "valu-cp-demo",
+	"attributes": {
+		"variant": {
+			"type": "string",
+			"default": "popover"
+		},
+		"related": {
+			"type": "array",
+			"default": []
+		},
+		"relatedSidebar": {
+			"type": "array",
+			"default": []
+		},
+		"featured": {
+			"type": "array",
+			"default": []
+		},
+		"author": {
+			"type": "array",
+			"default": []
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": ["wide"]
+	},
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"render": "file:./render.php"
+}

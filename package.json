@@ -1,0 +1,101 @@
+{
+  "name": "@valu/block-components",
+  "version": "0.1.0",
+  "description": "Valu Digital's React component library for the WordPress block editor.",
+  "license": "GPL-2.0-or-later",
+  "author": "Valu Digital Oy",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./components/content-picker": {
+      "types": "./dist/components/content-picker/index.d.ts",
+      "import": "./dist/components/content-picker/index.js",
+      "require": "./dist/components/content-picker/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "clean": "rimraf dist",
+    "playground": "npm run build && cd example && npm run playground"
+  },
+  "peerDependencies": {
+    "@wordpress/a11y": "^4.44.0",
+    "@wordpress/api-fetch": "^7.44.0",
+    "@wordpress/components": "^32.6.0",
+    "@wordpress/compose": "^7.44.0",
+    "@wordpress/core-data": "^7.44.0",
+    "@wordpress/data": "^10.44.0",
+    "@wordpress/element": "^6.44.0",
+    "@wordpress/html-entities": "^4.44.0",
+    "@wordpress/i18n": "^6.17.0",
+    "@wordpress/icons": "^12.2.0",
+    "@wordpress/url": "^4.44.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.1.0",
+    "@dnd-kit/sortable": "^8.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@emotion/cache": "^11.11.0",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@tanstack/react-query": "^5.52.0",
+    "clsx": "^2.1.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.4.6",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/uuid": "^9.0.8",
+    "@typescript-eslint/eslint-plugin": "^7.16.0",
+    "@typescript-eslint/parser": "^7.16.0",
+    "@wordpress/a11y": "^4.44.0",
+    "@wordpress/api-fetch": "^7.44.0",
+    "@wordpress/components": "^32.6.0",
+    "@wordpress/compose": "^7.44.0",
+    "@wordpress/core-data": "^7.44.0",
+    "@wordpress/data": "^10.44.0",
+    "@wordpress/element": "^6.44.0",
+    "@wordpress/html-entities": "^4.44.0",
+    "@wordpress/i18n": "^6.17.0",
+    "@wordpress/icons": "^12.2.0",
+    "@wordpress/url": "^4.44.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.34.3",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "happy-dom": "^20.9.0",
+    "prettier": "^3.3.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "rimraf": "^5.0.7",
+    "tsup": "^8.1.0",
+    "typescript": "^5.5.3",
+    "vitest": "^4.1.5",
+    "wp-types": "^4.68.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

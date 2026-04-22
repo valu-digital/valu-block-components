@@ -1,0 +1,13 @@
+.wp-block-valu-cp-demo {
+	padding: 16px;
+	background: #fff;
+	border: 1px dashed #dcdcde;
+	border-radius: 4px;
+}
+
+.wp-block-valu-cp-demo h3 {
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #1e1e1e;
+}
