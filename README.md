@@ -1,5 +1,8 @@
 # @valu/block-components
 
+[![npm version](https://img.shields.io/npm/v/@valu/block-components.svg)](https://www.npmjs.com/package/@valu/block-components)
+![license](https://img.shields.io/npm/l/@valu/block-components.svg)
+
 Valu Digital's React component library for the WordPress block editor.
 
 Components are designed to feel native to the WordPress admin — built on
