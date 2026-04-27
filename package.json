@@ -41,6 +41,11 @@
       "types": "./dist/components/content-picker/index.d.ts",
       "import": "./dist/components/content-picker/index.js",
       "require": "./dist/components/content-picker/index.cjs"
+    },
+    "./components/matrix": {
+      "types": "./dist/components/matrix/index.d.ts",
+      "import": "./dist/components/matrix/index.js",
+      "require": "./dist/components/matrix/index.cjs"
     }
   },
   "scripts": {

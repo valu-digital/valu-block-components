@@ -4,6 +4,7 @@ export default defineConfig({
 	entry: {
 		index: 'index.ts',
 		'components/content-picker/index': 'components/content-picker/index.ts',
+		'components/matrix/index': 'components/matrix/index.ts',
 	},
 	format: ['esm', 'cjs'],
 	dts: true,

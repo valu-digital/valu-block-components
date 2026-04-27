@@ -2,11 +2,11 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "valu/cp-demo",
-	"title": "Content Picker Demo",
+	"title": "Block Components Demo",
 	"category": "widgets",
 	"icon": "admin-links",
-	"description": "Demo block showing the @valu/block-components ContentPicker.",
-	"keywords": ["valu", "content", "picker"],
+	"description": "Demo block showing @valu/block-components — ContentPicker and Matrix.",
+	"keywords": ["valu", "content", "picker", "matrix"],
 	"textdomain": "valu-cp-demo",
 	"attributes": {
 		"variant": {

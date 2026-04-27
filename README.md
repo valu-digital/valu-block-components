@@ -43,6 +43,10 @@ function Edit({ attributes, setAttributes }) {
 - [`ContentPicker`](components/content-picker/readme.md) — search and
   select posts, pages, users, or taxonomy terms with drag-to-reorder,
   thumbnails, status/type badges, and grouped results.
+- [`Matrix`](components/matrix/readme.md) — abstract row × column grid of
+  selectable cells with optional collapsible column groups and a sticky
+  master gate column. For permission matrices, feature-flag grids,
+  notification preferences, etc.
 
 ## Scripts
 
