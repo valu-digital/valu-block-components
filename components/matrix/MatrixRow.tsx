@@ -5,6 +5,7 @@ import { MatrixCell } from './MatrixCell';
 import { MatrixGroupSummary } from './MatrixGroupSummary';
 import {
 	CellControlWrap,
+	FillerCell,
 	MasterCell,
 	RowHeaderCell,
 	RowHeaderInner,
@@ -159,6 +160,7 @@ export const MatrixRowView = ({
 							/>
 						));
 					})}
+			<FillerCell aria-hidden />
 		</tr>
 	);
 };

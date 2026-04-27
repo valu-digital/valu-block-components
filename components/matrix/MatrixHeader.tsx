@@ -1,4 +1,4 @@
-import { GroupHeaderButton, Caret, HeaderCell } from './styles';
+import { GroupHeaderButton, Caret, FillerHeaderCell, HeaderCell } from './styles';
 import type {
 	MatrixColumn,
 	MatrixColumnGroup,
@@ -72,6 +72,7 @@ export const MatrixHeader = ({
 							{renderHeader ? renderHeader(col) : col.label}
 						</HeaderCell>
 					))}
+					<FillerHeaderCell aria-hidden $sticky={stickyHeader} />
 				</tr>
 			</thead>
 		);
@@ -133,6 +134,7 @@ export const MatrixHeader = ({
 						</HeaderCell>
 					);
 				})}
+				<FillerHeaderCell aria-hidden rowSpan={2} $sticky={stickyHeader} />
 			</tr>
 			<tr>
 				{groups.map((group) => {

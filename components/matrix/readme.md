@@ -207,6 +207,7 @@ expects in your `onChange`.
 | `renderHeader` | `(column) => ReactNode` | — | Override leaf-column header content. |
 | `stickyHeader` | `boolean` | `true` | Stick column headers to the top of the viewport. |
 | `stickyFirstColumn` | `boolean` | `true` | Stick the row-header column (and master, if present) to the left. |
+| `rowHeaderWidth` | `number \| string` | `220` | Pinned width of the row-header column. |
 | `maxHeight` | `number \| string` | `'calc(100vh - 260px)'` | Caps the scroll viewport. |
 | `caption` | `string` | — | Visually-hidden `<caption>` for screen readers. |
 | `labels` | `MatrixLabels` | — | i18n overrides (`expandGroup`, `collapseGroup`, `groupSummary`, `cellToggled`). |
@@ -245,9 +246,16 @@ interface MatrixColumnGroup {
 interface MatrixMasterColumn {
     id: string;
     label: ReactNode;
-    disablesRow?: boolean;   // default true
+    disablesRow?: boolean;        // default true
+    width?: number | string;      // default 96; widen for longer labels
 }
 ```
+
+The `width` field is pinned via `<colgroup>` so the column stays the same
+width whether leaf columns are visible or collapsed. The default `96` fits
+short labels like "Agent" or "Enabled". For longer ones — "Search Console
+Access", "Käytössä koko sivustolla" — bump it: `master={{ id: 'enabled',
+label: 'Search Console Access', width: 180 }}`.
 
 ### `MatrixChange`
 

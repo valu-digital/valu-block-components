@@ -53,6 +53,13 @@ export interface MatrixMasterColumn {
 	label: ReactNode;
 	/** Disable every leaf cell in the row when this cell is unchecked. @default true */
 	disablesRow?: boolean;
+	/**
+	 * Fixed column width. Pin a number (px) or any CSS length (`'10rem'`,
+	 * `'12ch'`, …). Default `96` works for short labels like "Agent" /
+	 * "Enabled"; widen it for longer labels.
+	 * @default 96
+	 */
+	width?: number | string;
 }
 
 /** Context passed to a custom cell renderer. */
@@ -132,6 +139,12 @@ interface MatrixBaseProps {
 	stickyHeader?: boolean;
 	/** Stick the row-header column to the left of the scroll viewport. @default true */
 	stickyFirstColumn?: boolean;
+	/**
+	 * Fixed width of the row-header column. Pinning this keeps the column
+	 * the same width regardless of how many leaf/summary cells are visible.
+	 * @default 220
+	 */
+	rowHeaderWidth?: number | string;
 	/** Caps the scroll viewport. @default 'calc(100vh - 260px)' */
 	maxHeight?: number | string;
 

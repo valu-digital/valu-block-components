@@ -57,6 +57,7 @@ export const Matrix = (props: MatrixProps) => {
 		renderHeader,
 		stickyHeader = true,
 		stickyFirstColumn = true,
+		rowHeaderWidth = 220,
 		maxHeight = DEFAULT_MAX_HEIGHT,
 		caption,
 		labels,
@@ -81,7 +82,10 @@ export const Matrix = (props: MatrixProps) => {
 	});
 
 	const maxHeightCss = typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight;
-	const masterLeftOffset = '220px'; // Matches `RowHeaderCell` `min-width`.
+	const cssLength = (v: number | string) => (typeof v === 'number' ? `${v}px` : v);
+	const rowHeaderWidthCss = cssLength(rowHeaderWidth);
+	const masterWidthCss = master ? cssLength(master.width ?? 96) : '0';
+	const masterLeftOffset = rowHeaderWidthCss;
 
 	return (
 		<EmotionCacheProvider>
@@ -89,6 +93,16 @@ export const Matrix = (props: MatrixProps) => {
 				<Viewport $maxHeight={maxHeightCss}>
 					<Table>
 						{caption && <Caption>{caption}</Caption>}
+						{/*
+						 * Pin the row-header and master column widths so they don't grow
+						 * when leaf columns are collapsed into group-summary cells. The
+						 * remaining cols are left without explicit widths so leftover
+						 * space distributes among them.
+						 */}
+						<colgroup>
+							<col style={{ width: rowHeaderWidthCss }} />
+							{master && <col style={{ width: masterWidthCss }} />}
+						</colgroup>
 						<MatrixHeader
 							groups={groups}
 							master={master}

@@ -216,6 +216,37 @@ export const SummaryCell = styled.td`
 	font-variant-numeric: tabular-nums;
 `;
 
+/**
+ * Trailing cell that absorbs leftover horizontal space so leaf/summary
+ * cells stay at their content size (rather than auto-stretching). Borders
+ * and hover-highlight match the rest of the row, so the row separator
+ * still extends across the full table width.
+ */
+export const FillerCell = styled.td`
+	width: 100%;
+	padding: 0;
+`;
+
+/**
+ * Header equivalent of `FillerCell`. Placed at the end of the header row.
+ * Sticks to the top with the rest of the header so the empty trailing
+ * space stays continuous with the bordered/shadowed header bar.
+ */
+export const FillerHeaderCell = styled.th<{ $sticky?: boolean }>`
+	width: 100%;
+	padding: 0;
+
+	${(p) =>
+		p.$sticky &&
+		css`
+			position: sticky;
+			top: 0;
+			z-index: ${t.zHeader};
+			background: ${t.bg};
+			box-shadow: ${t.shadowStickyTop};
+		`};
+`;
+
 export const CellControlWrap = styled.div`
 	display: inline-flex;
 	align-items: center;
