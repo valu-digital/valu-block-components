@@ -25,12 +25,20 @@ defined( 'ABSPATH' ) || exit;
 function register_blocks(): void {
 	$build_dir = __DIR__ . '/build';
 
-	if ( ! file_exists( $build_dir . '/block.json' ) ) {
-		add_action( 'admin_notices', __NAMESPACE__ . '\\missing_build_notice' );
-		return;
+	$blocks = [ 'cp-demo', 'dp-demo' ];
+	$missing = false;
+	foreach ( $blocks as $slug ) {
+		$path = $build_dir . '/' . $slug;
+		if ( ! file_exists( $path . '/block.json' ) ) {
+			$missing = true;
+			continue;
+		}
+		register_block_type( $path );
 	}
 
-	register_block_type( $build_dir );
+	if ( $missing ) {
+		add_action( 'admin_notices', __NAMESPACE__ . '\\missing_build_notice' );
+	}
 }
 add_action( 'init', __NAMESPACE__ . '\\register_blocks' );
 

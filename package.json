@@ -42,6 +42,11 @@
       "import": "./dist/components/content-picker/index.js",
       "require": "./dist/components/content-picker/index.cjs"
     },
+    "./components/document-picker": {
+      "types": "./dist/components/document-picker/index.d.ts",
+      "import": "./dist/components/document-picker/index.js",
+      "require": "./dist/components/document-picker/index.cjs"
+    },
     "./components/matrix": {
       "types": "./dist/components/matrix/index.d.ts",
       "import": "./dist/components/matrix/index.js",
@@ -71,6 +76,7 @@
     "@wordpress/html-entities": "^4.44.0",
     "@wordpress/i18n": "^6.17.0",
     "@wordpress/icons": "^12.2.0",
+    "@wordpress/media-utils": "^5.44.0",
     "@wordpress/url": "^4.44.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
@@ -105,6 +111,7 @@
     "@wordpress/html-entities": "^4.44.0",
     "@wordpress/i18n": "^6.17.0",
     "@wordpress/icons": "^12.2.0",
+    "@wordpress/media-utils": "^5.44.0",
     "@wordpress/url": "^4.44.0",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.3",

@@ -1,0 +1,36 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "valu/dp-demo",
+	"title": "Document Picker Demo",
+	"category": "widgets",
+	"icon": "media-document",
+	"description": "Demo block exercising @valu/block-components DocumentPicker (multi-select, single-select, inline).",
+	"keywords": ["valu", "document", "picker", "media"],
+	"textdomain": "valu-cp-demo",
+	"attributes": {
+		"variant": {
+			"type": "string",
+			"default": "popover"
+		},
+		"documentsMulti": {
+			"type": "array",
+			"default": []
+		},
+		"documentSingle": {
+			"type": "array",
+			"default": []
+		},
+		"documentsInline": {
+			"type": "array",
+			"default": []
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": ["wide"]
+	},
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"render": "file:./render.php"
+}

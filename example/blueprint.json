@@ -1,8 +1,8 @@
 {
 	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
 	"meta": {
-		"title": "Valu ContentPicker Demo",
-		"description": "A seeded WP environment to try the @valu/block-components ContentPicker in the editor.",
+		"title": "Valu Block Components Demo",
+		"description": "A seeded WP environment to try @valu/block-components — ContentPicker, DocumentPicker, and Matrix.",
 		"author": "Valu Digital"
 	},
 	"preferredVersions": {
@@ -14,7 +14,7 @@
 		"networking": true
 	},
 	"login": true,
-	"landingPage": "/wp-admin/post-new.php?post_type=post",
+	"landingPage": "/wp-admin/edit.php?post_status=draft&post_type=post",
 	"steps": [
 		{
 			"step": "defineWpConfigConsts",
@@ -35,6 +35,10 @@
 		{
 			"step": "runPHP",
 			"code": "<?php require '/wordpress/wp-load.php'; if (get_option('valu_cp_demo_contacts_seeded')) { return; } if (!post_type_exists('valu_contact')) { return; } $contacts = [['Maija Mäkinen','maija@example.test','+358 40 111 1111','Engineering'],['Aleksi Virtanen','aleksi@example.test','+358 40 222 2222','Design'],['Sara Saarinen','sara@example.test','+358 40 333 3333','Engineering'],['Jussi Järvinen','jussi@example.test','+358 40 444 4444','Business'],['Elina Koskinen','elina@example.test','+358 40 555 5555','Design'],['Petri Peltonen','petri@example.test','+358 40 666 6666','Business']]; foreach ($contacts as $c) { $id = wp_insert_post(['post_title' => $c[0], 'post_content' => '<!-- wp:paragraph --><p>' . esc_html($c[0] . ' — ' . $c[3]) . '</p><!-- /wp:paragraph -->', 'post_status' => 'publish', 'post_type' => 'valu_contact']); if (!is_wp_error($id)) { update_post_meta($id, 'email', $c[1]); update_post_meta($id, 'phone', $c[2]); update_post_meta($id, 'department', $c[3]); } } flush_rewrite_rules(); update_option('valu_cp_demo_contacts_seeded', 1);"
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require '/wordpress/wp-load.php'; require_once ABSPATH . 'wp-admin/includes/image.php'; require_once ABSPATH . 'wp-admin/includes/file.php'; require_once ABSPATH . 'wp-admin/includes/media.php'; if (get_option('valu_dp_demo_seeded')) { return; } $upload_dir = wp_upload_dir(); $target_dir = $upload_dir['path']; if (!is_dir($target_dir)) { wp_mkdir_p($target_dir); } $pdf_bytes = \"%PDF-1.4\\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Resources<<>>/Contents 4 0 R>>endobj\\n4 0 obj<</Length 44>>stream\\nBT /F1 24 Tf 50 700 Td (Valu Demo PDF) Tj ET\\nendstream\\nendobj\\nxref\\n0 5\\n0000000000 65535 f \\n0000000009 00000 n \\n0000000052 00000 n \\n0000000099 00000 n \\n0000000178 00000 n \\ntrailer<</Size 5/Root 1 0 R>>\\nstartxref\\n264\\n%%EOF\\n\"; $docs = [ ['filename' => 'annual-report-2024.pdf', 'title' => 'Annual Report 2024'], ['filename' => 'employee-handbook.pdf', 'title' => 'Employee Handbook'], ['filename' => 'product-brochure.pdf', 'title' => 'Product Brochure'], ['filename' => 'pricing-sheet.pdf', 'title' => 'Pricing Sheet'], ['filename' => 'release-notes-q1.pdf', 'title' => 'Release Notes Q1'], ['filename' => 'security-policy.pdf', 'title' => 'Security Policy'], ['filename' => 'onboarding-guide.pdf', 'title' => 'Onboarding Guide'] ]; foreach ($docs as $doc) { $path = trailingslashit($target_dir) . $doc['filename']; file_put_contents($path, $pdf_bytes); $attachment = [ 'guid' => trailingslashit($upload_dir['url']) . $doc['filename'], 'post_mime_type' => 'application/pdf', 'post_title' => $doc['title'], 'post_content' => '', 'post_status' => 'inherit' ]; $attach_id = wp_insert_attachment($attachment, $path); if (!is_wp_error($attach_id)) { $meta = wp_generate_attachment_metadata($attach_id, $path); wp_update_attachment_metadata($attach_id, $meta); } } wp_insert_post(['post_title' => 'Try the DocumentPicker', 'post_content' => '<!-- wp:valu/dp-demo /-->', 'post_status' => 'draft']); update_option('valu_dp_demo_seeded', 1);"
 		}
 	]
 }
