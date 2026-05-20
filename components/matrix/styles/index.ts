@@ -35,7 +35,14 @@ export const Table = styled.table`
 	border-collapse: separate;
 	border-spacing: 0;
 	width: 100%;
-	min-width: max-content;
+	/*
+	 * Do NOT set \`min-width: max-content\` here. Combined with the
+	 * trailing FillerCell's \`width: 100%\`, Chrome's auto table layout
+	 * enters a feedback loop and blows the table up to ~1,000,000px,
+	 * producing a phantom horizontal scrollbar even when all content
+	 * fits. The per-cell min-widths (row header, master, leaf) already
+	 * prevent content from squishing, so this rule is unnecessary.
+	 */
 
 	caption {
 		${visuallyHiddenCss};
