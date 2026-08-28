@@ -157,6 +157,67 @@ export const DocMetaInline = styled.div`
 	}
 `;
 
+/**
+ * Move up/down buttons — redundant with the drag handle (which also supports
+ * keyboard reordering), so they are hidden in narrow containers like the
+ * inspector sidebar where every pixel of row width matters.
+ */
+export const ReorderButtons = styled.span`
+	display: none;
+
+	@container valu-dp-row (min-width: 340px) {
+		display: inline-flex;
+	}
+`;
+
+/**
+ * Body of a selected row in label-edit mode (`enableItemLabels`): the display
+ * name is edited directly in place of the title, with the filename (and meta)
+ * as one muted line underneath. Always stacked — the input needs the full
+ * row width in narrow containers like the inspector sidebar.
+ */
+export const LabelEditBody = styled.div`
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 4px 0;
+
+	.components-base-control,
+	.components-text-control__input {
+		width: 100%;
+		min-width: 0;
+	}
+
+	/* __nextHasNoMarginBottom is not honored by every bundled
+	   wp-components version — enforce the no-margin layout here. */
+	.components-base-control.components-base-control {
+		margin-bottom: 0;
+	}
+
+	/* Doubled class beats wp-components' own input rules regardless of
+	   stylesheet order (the emotion cache may be prepended). */
+	.components-text-control__input.components-text-control__input {
+		font-size: ${t.fontSizeBody};
+		height: 28px;
+		min-height: 28px;
+		padding: 2px 8px;
+	}
+
+	@container valu-dp-row (min-width: ${WIDE_ROW}) {
+		flex-direction: row;
+		align-items: center;
+		gap: ${t.spaceMd};
+
+		.components-base-control {
+			flex: 0 1 340px;
+			min-width: 180px;
+			width: auto;
+		}
+	}
+`;
+
 export const Root = styled.div`
 	color: ${t.fg};
 	font-size: ${t.fontSizeBody};

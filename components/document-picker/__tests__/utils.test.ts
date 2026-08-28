@@ -4,6 +4,7 @@ import {
 	DEFAULT_DOCUMENT_MIME_TYPES,
 	basenameFromUrl,
 	dedupeAgainst,
+	displayTitle,
 	extensionFromUrl,
 	formatFileSize,
 	formatModified,
@@ -134,8 +135,7 @@ describe('mapMediaToDocumentItem', () => {
 			id: 1,
 			title: { rendered: '' },
 			source_url: 'https://x.test/handbook.docx',
-			mime_type:
-				'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			mime_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 		});
 		expect(out.title).toBe('handbook.docx');
 		expect(out.extension).toBe('DOCX');
@@ -185,5 +185,16 @@ describe('isMaxedOut & dedupeAgainst', () => {
 		const results = [item({ id: 1 }), item({ id: 2 })];
 		expect(dedupeAgainst(results, picked, true)).toHaveLength(1);
 		expect(dedupeAgainst(results, picked, false)).toHaveLength(2);
+	});
+});
+
+describe('displayTitle', () => {
+	it('prefers the user-authored label over the title', () => {
+		expect(displayTitle(item({ label: 'Custom name' }))).toBe('Custom name');
+	});
+
+	it('falls back to the title when the label is missing or blank', () => {
+		expect(displayTitle(item())).toBe('Doc');
+		expect(displayTitle(item({ label: '   ' }))).toBe('Doc');
 	});
 });

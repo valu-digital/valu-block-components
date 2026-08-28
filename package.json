@@ -1,6 +1,6 @@
 {
   "name": "@valu/block-components",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Valu Digital's React component library for the WordPress block editor.",
   "license": "GPL-2.0-or-later",
   "author": "Valu Digital Oy",

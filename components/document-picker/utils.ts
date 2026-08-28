@@ -127,6 +127,10 @@ export const mapMediaToDocumentItem = (raw: MediaRecordShape): DocumentItem => {
 	};
 };
 
+/** Effective display name for an item: user-authored label, else title. */
+export const displayTitle = (item: Pick<DocumentItem, 'label' | 'title'>): string =>
+	item.label?.trim() || item.title;
+
 /** Filter out items already present in `value` by attachment id. */
 export const dedupeAgainst = (
 	items: DocumentItem[],

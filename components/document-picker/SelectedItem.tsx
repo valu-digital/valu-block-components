@@ -1,14 +1,8 @@
-import { type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Button, Icon } from '@wordpress/components';
-import {
-	caution,
-	chevronDown,
-	chevronUp,
-	closeSmall,
-	dragHandle,
-} from '@wordpress/icons';
+import { Button, Icon, TextControl } from '@wordpress/components';
+import { caution, chevronDown, chevronUp, closeSmall, dragHandle } from '@wordpress/icons';
 import { __, sprintf } from '@wordpress/i18n';
 
 import {
@@ -17,11 +11,13 @@ import {
 	DocRowBody,
 	DragHandleButton,
 	FilenameText,
+	LabelEditBody,
 	PrimaryText,
+	ReorderButtons,
 	SelectedRow,
 } from './styles';
 import { ExtensionBadge } from './badges/ExtensionBadge';
-import { formatFileSize, formatModified } from './utils';
+import { displayTitle, formatFileSize, formatModified } from './utils';
 import type { DocumentPickerLabels, ResolvedDocumentItem } from './types';
 
 export interface SelectedItemProps {
@@ -36,6 +32,10 @@ export interface SelectedItemProps {
 	onRemove: () => void;
 	onMoveUp?: () => void;
 	onMoveDown?: () => void;
+	/** Show the editable per-item display-name field. */
+	enableLabelEdit?: boolean;
+	/** Called with the next label; an empty string clears the override. */
+	onLabelChange?: (label: string) => void;
 	render?: (item: ResolvedDocumentItem) => ReactNode;
 }
 
@@ -51,13 +51,14 @@ export const SelectedItem = ({
 	onRemove,
 	onMoveUp,
 	onMoveDown,
+	enableLabelEdit = false,
+	onLabelChange,
 	render,
 }: SelectedItemProps) => {
-	const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-		useSortable({
-			id: item.key,
-			disabled: !orderable,
-		});
+	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+		id: item.key,
+		disabled: !orderable,
+	});
 
 	const style: CSSProperties = {
 		transform: CSS.Translate.toString(transform),
@@ -69,29 +70,64 @@ export const SelectedItem = ({
 	const missingLabel =
 		labels.missing ?? __('This document is no longer available.', 'valu-block-components');
 
+	const displayName = displayTitle(item);
+
 	const removeLabel = labels.remove
 		? labels.remove
 		: sprintf(
 				/* translators: %s: document title */
 				__('Remove %s', 'valu-block-components'),
-				item.title,
+				displayName,
 			);
 	const moveUpLabel = labels.moveUp
 		? labels.moveUp
 		: sprintf(
 				/* translators: %s: document title */
 				__('Move %s up', 'valu-block-components'),
-				item.title,
+				displayName,
 			);
 	const moveDownLabel = labels.moveDown
 		? labels.moveDown
 		: sprintf(
 				/* translators: %s: document title */
 				__('Move %s down', 'valu-block-components'),
-				item.title,
+				displayName,
 			);
 
 	const modified = showModifiedDate ? formatModified(item.modified) : '';
+
+	// Label-edit mode: the display name is edited directly in place of the
+	// title. `labelDraft` keeps the in-progress text while the field is
+	// focused so clearing it doesn't immediately snap back to the title;
+	// on blur the field settles on the effective display name again.
+	// Commits are debounced so consumers persisting to block attributes
+	// don't re-render the block on every keystroke; blur flushes.
+	const isLabelEdit = enableLabelEdit && !isMissing && Boolean(onLabelChange);
+	const [labelDraft, setLabelDraft] = useState<string | null>(null);
+	const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	useEffect(
+		() => () => {
+			if (commitTimer.current) {
+				clearTimeout(commitTimer.current);
+			}
+		},
+		[],
+	);
+
+	// An empty field — or the original title typed back — clears the override.
+	const normalizeLabel = (value: string): string => {
+		const trimmed = value.trim();
+		return trimmed === '' || trimmed === item.title ? '' : value;
+	};
+	const itemLabelText = labels.itemLabel ?? __('Display name', 'valu-block-components');
+	const metaParts = [item.filename];
+	if (showFileSize && item.fileSize) {
+		metaParts.push(formatFileSize(item.fileSize));
+	}
+	if (modified) {
+		metaParts.push(modified);
+	}
 
 	return (
 		<SelectedRow
@@ -119,11 +155,46 @@ export const SelectedItem = ({
 			) : null}
 			{render ? (
 				render(item)
+			) : isLabelEdit ? (
+				<LabelEditBody>
+					<TextControl
+						__nextHasNoMarginBottom
+						__next40pxDefaultSize={false}
+						aria-label={sprintf(
+							/* translators: 1: display-name field label, 2: filename */
+							'%1$s: %2$s',
+							itemLabelText,
+							item.filename,
+						)}
+						value={labelDraft ?? item.label ?? item.title}
+						onChange={(value) => {
+							setLabelDraft(value);
+							if (commitTimer.current) {
+								clearTimeout(commitTimer.current);
+							}
+							commitTimer.current = setTimeout(() => {
+								commitTimer.current = null;
+								onLabelChange?.(normalizeLabel(value));
+							}, 300);
+						}}
+						onBlur={() => {
+							if (commitTimer.current) {
+								clearTimeout(commitTimer.current);
+								commitTimer.current = null;
+								if (labelDraft !== null) {
+									onLabelChange?.(normalizeLabel(labelDraft));
+								}
+							}
+							setLabelDraft(null);
+						}}
+					/>
+					<FilenameText title={item.filename}>{metaParts.join(' · ')}</FilenameText>
+				</LabelEditBody>
 			) : (
 				<>
 					<DocRowBody>
-						<PrimaryText muted={isMissing} title={item.title}>
-							{isMissing ? missingLabel : item.title}
+						<PrimaryText muted={isMissing} title={displayName}>
+							{isMissing ? missingLabel : displayName}
 						</PrimaryText>
 						{!isMissing ? (
 							<FilenameText title={item.filename}>{item.filename}</FilenameText>
@@ -141,7 +212,7 @@ export const SelectedItem = ({
 			)}
 			<ActionColumn>
 				{orderable ? (
-					<>
+					<ReorderButtons>
 						<Button
 							size="small"
 							variant="tertiary"
@@ -158,7 +229,7 @@ export const SelectedItem = ({
 							onClick={onMoveDown}
 							disabled={index === total - 1 || !onMoveDown}
 						/>
-					</>
+					</ReorderButtons>
 				) : null}
 				<Button
 					size="small"

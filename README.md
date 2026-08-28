@@ -48,7 +48,8 @@ function Edit({ attributes, setAttributes }) {
   thumbnails, status/type badges, and grouped results.
 - [`DocumentPicker`](components/document-picker/readme.md) — attach
   document attachments (PDF, Word, Excel, PowerPoint by default) via
-  REST search-as-you-type combined with the native Media Library modal.
+  REST search-as-you-type combined with the native Media Library modal,
+  with optional in-place editable display names per item.
 - [`Matrix`](components/matrix/readme.md) — abstract row × column grid of
   selectable cells with optional collapsible column groups and a sticky
   master gate column. For permission matrices, feature-flag grids,

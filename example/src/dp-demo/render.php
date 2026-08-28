@@ -11,11 +11,12 @@
 
 declare( strict_types=1 );
 
-$multi  = is_array( $attributes['documentsMulti'] ?? null ) ? $attributes['documentsMulti'] : [];
-$single = is_array( $attributes['documentSingle'] ?? null ) ? $attributes['documentSingle'] : [];
-$inline = is_array( $attributes['documentsInline'] ?? null ) ? $attributes['documentsInline'] : [];
+$multi   = is_array( $attributes['documentsMulti'] ?? null ) ? $attributes['documentsMulti'] : [];
+$single  = is_array( $attributes['documentSingle'] ?? null ) ? $attributes['documentSingle'] : [];
+$inline  = is_array( $attributes['documentsInline'] ?? null ) ? $attributes['documentsInline'] : [];
+$labeled = is_array( $attributes['documentsLabeled'] ?? null ) ? $attributes['documentsLabeled'] : [];
 
-if ( empty( $multi ) && empty( $single ) && empty( $inline ) ) {
+if ( empty( $multi ) && empty( $single ) && empty( $inline ) && empty( $labeled ) ) {
 	return;
 }
 
@@ -28,7 +29,9 @@ $render_doc = static function ( array $item ): string {
 	if ( ! $url ) {
 		return '';
 	}
-	$title = get_the_title( $id );
+	// User-authored display name (see `enableItemLabels`) wins over the media title.
+	$label = isset( $item['label'] ) && is_string( $item['label'] ) ? trim( $item['label'] ) : '';
+	$title = $label !== '' ? $label : get_the_title( $id );
 	if ( '' === $title ) {
 		$title = basename( $url );
 	}
@@ -60,5 +63,6 @@ echo '<section ' . $wrapper_attributes . '>'; // phpcs:ignore WordPress.Security
 $render_list( $multi, __( 'Selected documents', 'valu-cp-demo' ) );
 $render_list( $single, __( 'Featured PDF', 'valu-cp-demo' ) );
 $render_list( $inline, __( 'Inline-picked documents', 'valu-cp-demo' ) );
+$render_list( $labeled, __( 'Documents with display names', 'valu-cp-demo' ) );
 
 echo '</section>';

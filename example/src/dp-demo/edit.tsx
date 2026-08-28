@@ -12,6 +12,7 @@ type Attributes = {
 	documentsMulti: DocumentItem[];
 	documentSingle: DocumentItem[];
 	documentsInline: DocumentItem[];
+	documentsLabeled: DocumentItem[];
 };
 
 type EditProps = {
@@ -93,6 +94,28 @@ export function Edit({ attributes, setAttributes }: EditProps) {
 					fetchOnOpen
 					value={attributes.documentsInline}
 					onChange={(documentsInline) => setAttributes({ documentsInline })}
+				/>
+			</section>
+
+			<section>
+				<h3 style={{ marginTop: 0 }}>
+					{__('Documents — editable display names', 'valu-cp-demo')}
+				</h3>
+				<p style={{ marginTop: 0, color: '#757575' }}>
+					{__(
+						'With enableItemLabels each row title is edited in place — the input is prefilled with the effective display name. Edits are stored on the item as `label` and override the media title wherever the item is shown; the attachment itself is not touched. Clear the field (or type the original title back) to fall back to the media title.',
+						'valu-cp-demo',
+					)}
+				</p>
+				<DocumentPicker
+					label={__('Labeled documents', 'valu-cp-demo')}
+					hideLabelFromVision
+					maxItems={5}
+					orderable
+					fetchOnOpen
+					enableItemLabels
+					value={attributes.documentsLabeled}
+					onChange={(documentsLabeled) => setAttributes({ documentsLabeled })}
 				/>
 			</section>
 		</div>

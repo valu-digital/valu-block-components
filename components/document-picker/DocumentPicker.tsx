@@ -8,11 +8,7 @@ import { MediaLibraryButton } from './MediaLibraryButton';
 import { EmotionCacheProvider } from '../content-picker/styles/emotionCache';
 import { ActionsRow, Root } from './styles';
 import { DEFAULT_DOCUMENT_MIME_TYPES } from './utils';
-import type {
-	DocumentItem,
-	DocumentPickerLabels,
-	DocumentPickerProps,
-} from './types';
+import type { DocumentItem, DocumentPickerLabels, DocumentPickerProps } from './types';
 
 const DEFAULT_LABELS: DocumentPickerLabels = {};
 const DEFAULT_MIME = [...DEFAULT_DOCUMENT_MIME_TYPES];
@@ -59,6 +55,7 @@ export const DocumentPicker = ({
 	fetchOnOpen = false,
 	uniqueItems = true,
 	enableMediaLibrary = true,
+	enableItemLabels = false,
 	showExtensionBadge = true,
 	showFileSize = true,
 	showModifiedDate = false,
@@ -87,8 +84,7 @@ export const DocumentPicker = ({
 
 	const effectiveMime = allowedMimeTypes ?? DEFAULT_MIME;
 	const effectivePerPage = perPage ?? (variant === 'popover' ? 10 : 20);
-	const effectiveOrderable =
-		orderable ?? (Number.isFinite(maxItems) ? maxItems > 1 : true);
+	const effectiveOrderable = orderable ?? (Number.isFinite(maxItems) ? maxItems > 1 : true);
 
 	const queryClientRef = useRef<QueryClient | null>(null);
 	if (!queryClientRef.current) queryClientRef.current = makeQueryClient();
@@ -173,7 +169,17 @@ export const DocumentPicker = ({
 								{...(allowedExtensions !== undefined ? { allowedExtensions } : {})}
 								multiple={false}
 								value={value}
-								onSelect={(items) => handleChange([items[items.length - 1]!])}
+								onSelect={(items) => {
+									const next = items[items.length - 1]!;
+									const prev = value[0];
+									// Re-selecting the same attachment keeps the
+									// user-authored label; a different file drops it.
+									const keepLabel =
+										prev?.id === next.id && prev.label !== undefined;
+									handleChange([
+										keepLabel ? { ...next, label: prev.label! } : next,
+									]);
+								}}
 								labels={labels}
 								variant="tertiary"
 								label={labels.replace}
@@ -191,6 +197,7 @@ export const DocumentPicker = ({
 						showExtensionBadge={showExtensionBadge}
 						showFileSize={showFileSize}
 						showModifiedDate={showModifiedDate}
+						enableItemLabels={enableItemLabels}
 					/>
 				</Root>
 			</QueryClientProvider>

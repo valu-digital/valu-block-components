@@ -5,7 +5,7 @@
 	"title": "Document Picker Demo",
 	"category": "widgets",
 	"icon": "media-document",
-	"description": "Demo block exercising @valu/block-components DocumentPicker (multi-select, single-select, inline).",
+	"description": "Demo block exercising @valu/block-components DocumentPicker (multi-select, single-select, inline, editable display names).",
 	"keywords": ["valu", "document", "picker", "media"],
 	"textdomain": "valu-cp-demo",
 	"attributes": {
@@ -22,6 +22,10 @@
 			"default": []
 		},
 		"documentsInline": {
+			"type": "array",
+			"default": []
+		},
+		"documentsLabeled": {
 			"type": "array",
 			"default": []
 		}

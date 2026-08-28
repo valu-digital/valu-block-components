@@ -22,18 +22,10 @@ import { __, sprintf } from '@wordpress/i18n';
 
 import { SelectedItem } from './SelectedItem';
 import { DragChip } from '../content-picker/DragChip';
+import { displayTitle } from './utils';
 import { useResolvedDocuments } from './hooks/useResolvedDocuments';
-import {
-	CountPill,
-	HeaderRow,
-	HeaderTitle,
-	SelectedListEl,
-} from './styles';
-import type {
-	DocumentItem,
-	DocumentPickerLabels,
-	ResolvedDocumentItem,
-} from './types';
+import { CountPill, HeaderRow, HeaderTitle, SelectedListEl } from './styles';
+import type { DocumentItem, DocumentPickerLabels, ResolvedDocumentItem } from './types';
 
 export interface SelectedListProps {
 	value: DocumentItem[];
@@ -46,6 +38,7 @@ export interface SelectedListProps {
 	showExtensionBadge: boolean;
 	showFileSize: boolean;
 	showModifiedDate: boolean;
+	enableItemLabels?: boolean;
 }
 
 export const SelectedList = ({
@@ -59,6 +52,7 @@ export const SelectedList = ({
 	showExtensionBadge,
 	showFileSize,
 	showModifiedDate,
+	enableItemLabels = false,
 }: SelectedListProps) => {
 	const resolved = useResolvedDocuments(value);
 	const [activeKey, setActiveKey] = useState<string | null>(null);
@@ -74,6 +68,24 @@ export const SelectedList = ({
 
 	const remove = useCallback(
 		(key: string) => onChange(value.filter((i) => i.key !== key)),
+		[value, onChange],
+	);
+
+	const setLabel = useCallback(
+		(key: string, label: string) =>
+			onChange(
+				value.map((i) => {
+					if (i.key !== key) {
+						return i;
+					}
+					if (label === '') {
+						const rest = { ...i };
+						delete rest.label;
+						return rest;
+					}
+					return { ...i, label };
+				}),
+			),
 		[value, onChange],
 	);
 
@@ -143,6 +155,12 @@ export const SelectedList = ({
 			{...(index < resolved.length - 1
 				? { onMoveDown: () => reorder(index, index + 1) }
 				: {})}
+			{...(enableItemLabels
+				? {
+						enableLabelEdit: true,
+						onLabelChange: (label: string) => setLabel(item.key, label),
+					}
+				: {})}
 			{...(renderSelected ? { render: renderSelected } : {})}
 		/>
 	));
@@ -170,7 +188,7 @@ export const SelectedList = ({
 					<SelectedListEl role="list">{rows}</SelectedListEl>
 				</SortableContext>
 				<DragOverlay dropAnimation={defaultDropAnimation}>
-					{activeItem ? <DragChip title={activeItem.title} /> : null}
+					{activeItem ? <DragChip title={displayTitle(activeItem)} /> : null}
 				</DragOverlay>
 			</DndContext>
 		</>

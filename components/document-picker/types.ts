@@ -24,6 +24,12 @@ export interface DocumentItem {
 	modified?: string;
 	/** Raw REST record so consumer filters can reach beyond the normalized shape. */
 	raw?: unknown;
+	/**
+	 * Editor-authored display name that overrides `title` in consumer UIs.
+	 * Never derived from the REST record — set only by the user via the
+	 * per-item label field (see `enableItemLabels`).
+	 */
+	label?: string;
 }
 
 /** A picked document resolved against the current entity store. */
@@ -50,6 +56,7 @@ export interface DocumentPickerLabels {
 	missing?: string;
 	openLink?: string;
 	extensionBadge?: string;
+	itemLabel?: string;
 }
 
 export interface RequestContext {
@@ -123,6 +130,15 @@ export interface DocumentPickerProps {
 
 	/** Show the "Browse Media Library" button. @default true */
 	enableMediaLibrary?: boolean;
+
+	/**
+	 * Make each selected row's display name editable in place: the title is
+	 * rendered as a text input prefilled with the effective name. Edits are
+	 * stored on the item as `label` (the attachment itself is untouched);
+	 * clearing the field — or typing the original title back — removes the
+	 * override and falls back to the attachment title. @default false
+	 */
+	enableItemLabels?: boolean;
 
 	/** Show the uppercase extension badge on each row. @default true */
 	showExtensionBadge?: boolean;
