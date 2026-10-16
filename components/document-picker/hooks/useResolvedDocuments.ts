@@ -11,10 +11,14 @@ import { mapMediaToDocumentItem } from '../utils';
  * is found, refresh title/url/extension/size from the live record.
  */
 export const useResolvedDocuments = (value: DocumentItem[]): ResolvedDocumentItem[] => {
+	// Values are store references, `null` or `undefined`, never objects built
+	// here: useSelect compares the result shallowly, so a fresh wrapper per
+	// item would count as a change on every call.
+	// `undefined` = still resolving, `null` = resolved but not found.
 	const records = useSelect(
 		(select) => {
 			const core = select(coreStore);
-			const out: Record<number, { record: unknown; resolved: boolean }> = {};
+			const out: Record<number, unknown> = {};
 			for (const item of value) {
 				const record = core.getEntityRecord('postType', 'attachment', item.id);
 				const resolved = core.hasFinishedResolution('getEntityRecord', [
@@ -22,7 +26,7 @@ export const useResolvedDocuments = (value: DocumentItem[]): ResolvedDocumentIte
 					'attachment',
 					item.id,
 				]);
-				out[item.id] = { record: record ?? null, resolved };
+				out[item.id] = resolved ? (record ?? null) : undefined;
 			}
 			return out;
 		},
@@ -32,10 +36,8 @@ export const useResolvedDocuments = (value: DocumentItem[]): ResolvedDocumentIte
 	return useMemo(
 		() =>
 			value.map((item): ResolvedDocumentItem => {
-				const entry = records[item.id];
-				if (!entry) return item;
-				const { record, resolved } = entry;
-				if (!resolved) return item;
+				const record = records[item.id];
+				if (record === undefined) return item;
 				if (!record) return { ...item, missing: 'deleted' };
 				const fresh = mapMediaToDocumentItem(
 					record as Parameters<typeof mapMediaToDocumentItem>[0],

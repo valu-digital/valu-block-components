@@ -16,9 +16,23 @@ accessible by default.
 npm ci
 ```
 
-Peer dependencies: `react ^18.3`, `react-dom ^18.3`, and the
-`@wordpress/*` packages listed in `package.json` (available in any
-modern Gutenberg/WP 6.4+ environment).
+### Requirements
+
+- **WordPress 7.0 or newer.** The components use the `@wordpress/*` packages
+  that WordPress ships at runtime.
+- **A build that externalizes WordPress packages**, such as `@wordpress/scripts`
+  or `@wordpress/dependency-extraction-webpack-plugin`. The `@wordpress/*`
+  imports are left bare in `dist/` and must resolve to the `wp.*` globals, so
+  every plugin on the page shares the editor's copy.
+- **Peer dependencies:** `react ^18.3` and `react-dom ^18.3`.
+
+The `@wordpress/*` packages are intentionally not declared as peer
+dependencies: npm would check them against your `node_modules`, while the
+version that actually runs is the one WordPress provides. `@wordpress/icons`
+is a regular dependency because WordPress doesn't provide it at runtime.
+
+If you use TypeScript or run unit tests that import this package, install the
+`@wordpress/*` packages you use as your own `devDependencies`.
 
 ## Quickstart
 

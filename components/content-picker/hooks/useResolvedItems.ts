@@ -41,10 +41,14 @@ export const useResolvedItems = (value: ContentItem[]): ResolvedContentItem[] =>
 		return Array.from(map.entries()).map(([key, v]) => ({ key, ...v }));
 	}, [value]);
 
+	// Values are store references, `null` or `undefined`, never objects built
+	// here: useSelect compares the result shallowly, so a fresh wrapper per
+	// item would count as a change on every call.
+	// `undefined` = still resolving, `null` = resolved but not found.
 	const records = useSelect(
 		(select) => {
 			const core = select(coreStore);
-			const out: Record<string, { record: EntityRecord | null; resolved: boolean }> = {};
+			const out: Record<string, EntityRecord | null | undefined> = {};
 			for (const item of value) {
 				const kindKey = entityKindFor(item.kind);
 				const nameKey = entityNameFor(item.kind, item.type);
@@ -57,10 +61,9 @@ export const useResolvedItems = (value: ContentItem[]): ResolvedContentItem[] =>
 					nameKey,
 					item.id,
 				]);
-				out[`${item.kind}:${item.type}:${item.id}`] = {
-					record: record ?? null,
-					resolved,
-				};
+				out[`${item.kind}:${item.type}:${item.id}`] = resolved
+					? (record ?? null)
+					: undefined;
 			}
 			return out;
 		},
@@ -70,11 +73,9 @@ export const useResolvedItems = (value: ContentItem[]): ResolvedContentItem[] =>
 	return useMemo(
 		() =>
 			value.map((item): ResolvedContentItem => {
-				const resolvedEntry = records[`${item.kind}:${item.type}:${item.id}`];
-				if (!resolvedEntry) return item;
-				const { record, resolved } = resolvedEntry;
+				const record = records[`${item.kind}:${item.type}:${item.id}`];
 
-				if (!resolved) {
+				if (record === undefined) {
 					return item;
 				}
 				if (!record) {
