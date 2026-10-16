@@ -29,6 +29,7 @@ export {
 	SearchIconWrap,
 	SecondaryText,
 	SelectedListEl,
+	SelectedTitle,
 	StickyHeader,
 	SuggestionsShell,
 } from '../../content-picker/styles';
@@ -42,8 +43,8 @@ export const SelectedRow = styled.li<{ dragging?: boolean; missing?: boolean }>`
 	container-name: valu-dp-row;
 	display: flex;
 	align-items: center;
-	gap: ${t.spaceSm};
-	padding: 2px ${t.spaceSm};
+	gap: ${t.spaceXs};
+	padding: 6px ${t.spaceXs};
 	background: ${({ missing }) => (missing ? t.dangerSoft : t.bg)};
 	border: 1px solid ${({ missing }) => (missing ? t.dangerLine : t.gray300)};
 	border-radius: ${t.radiusMd};
@@ -218,7 +219,11 @@ export const LabelEditBody = styled.div`
 	}
 `;
 
+// `min-width: 0` lets the picker shrink inside a flex row (e.g. a sidebar
+// PanelRow); otherwise its longest unbroken text sets its width.
 export const Root = styled.div`
+	width: 100%;
+	min-width: 0;
 	color: ${t.fg};
 	font-size: ${t.fontSizeBody};
 

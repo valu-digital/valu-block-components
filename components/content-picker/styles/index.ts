@@ -17,7 +17,11 @@ export const visuallyHiddenCss = css`
 	white-space: nowrap;
 `;
 
+// `min-width: 0` lets the picker shrink inside a flex row (e.g. a sidebar
+// PanelRow); otherwise its longest unbroken text sets its width.
 export const Root = styled.div`
+	width: 100%;
+	min-width: 0;
 	color: ${t.fg};
 	font-size: ${t.fontSizeBody};
 
@@ -152,6 +156,13 @@ export const PrimaryText = styled.span<{ muted?: boolean }>`
 	display: block;
 	line-height: 1.3;
 	transition: color ${t.transitionFast};
+`;
+
+/** Title of a selected row: regular weight, wraps instead of truncating. */
+export const SelectedTitle = styled(PrimaryText)`
+	font-weight: ${t.fontWeightRegular};
+	white-space: normal;
+	overflow-wrap: anywhere;
 `;
 
 export const Option = styled.li<{ highlighted?: boolean; disabled?: boolean }>`
@@ -305,6 +316,12 @@ export const ActionColumn = styled.div`
 	margin-left: auto;
 `;
 
+/** Move up/down stacked in one column, so they take a single button's width. */
+export const ReorderStack = styled.span`
+	display: flex;
+	flex-direction: column;
+`;
+
 export const SelectedListEl = styled.ul`
 	list-style: none;
 	margin: ${t.spaceSm} 0 0;
@@ -317,8 +334,8 @@ export const SelectedListEl = styled.ul`
 export const SelectedRow = styled.li<{ dragging?: boolean; missing?: boolean }>`
 	display: flex;
 	align-items: center;
-	gap: ${t.spaceSm};
-	padding: 2px ${t.spaceSm};
+	gap: ${t.spaceXs};
+	padding: 6px ${t.spaceXs};
 	background: ${({ missing }) => (missing ? t.dangerSoft : t.bg)};
 	border: 1px solid ${({ missing }) => (missing ? t.dangerLine : t.gray300)};
 	border-radius: ${t.radiusMd};

@@ -12,9 +12,9 @@ import {
 	DragHandleButton,
 	FilenameText,
 	LabelEditBody,
-	PrimaryText,
 	ReorderButtons,
 	SelectedRow,
+	SelectedTitle,
 } from './styles';
 import { ExtensionBadge } from './badges/ExtensionBadge';
 import { displayTitle, formatFileSize, formatModified } from './utils';
@@ -193,9 +193,9 @@ export const SelectedItem = ({
 			) : (
 				<>
 					<DocRowBody>
-						<PrimaryText muted={isMissing} title={displayName}>
+						<SelectedTitle muted={isMissing} title={displayName}>
 							{isMissing ? missingLabel : displayName}
-						</PrimaryText>
+						</SelectedTitle>
 						{!isMissing ? (
 							<FilenameText title={item.filename}>{item.filename}</FilenameText>
 						) : null}

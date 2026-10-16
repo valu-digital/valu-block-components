@@ -15,8 +15,9 @@ import {
 	ActionColumn,
 	DragHandleButton,
 	ItemBody,
-	PrimaryText,
+	ReorderStack,
 	SelectedRow,
+	SelectedTitle,
 	Thumb,
 } from './styles';
 import { StatusBadge } from './badges/StatusBadge';
@@ -138,9 +139,9 @@ export const SelectedItem = ({
 				render(item)
 			) : (
 				<ItemBody>
-					<PrimaryText muted={isMissing || isTrash} title={item.title}>
+					<SelectedTitle muted={isMissing || isTrash} title={item.title}>
 						{isMissing ? missingLabel : isTrash ? trashLabel : item.title}
-					</PrimaryText>
+					</SelectedTitle>
 				</ItemBody>
 			)}
 			{!isMissing && showTypeBadge ? (
@@ -151,7 +152,7 @@ export const SelectedItem = ({
 			) : null}
 			<ActionColumn>
 				{orderable ? (
-					<>
+					<ReorderStack>
 						<Button
 							size="small"
 							variant="tertiary"
@@ -168,7 +169,7 @@ export const SelectedItem = ({
 							onClick={onMoveDown}
 							disabled={index === total - 1 || !onMoveDown}
 						/>
-					</>
+					</ReorderStack>
 				) : null}
 				<Button
 					size="small"
