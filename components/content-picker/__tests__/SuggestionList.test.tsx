@@ -127,6 +127,18 @@ describe('SuggestionList infinite scroll', () => {
 		expect(scroller.scrollTop).toBe(0);
 	});
 
+	it('does not observe while a page loads', () => {
+		const onLoadMore = vi.fn();
+		const { rerender } = render(<SuggestionList {...props({ onLoadMore })} />);
+		onLoadMore.mockClear();
+
+		FakeIntersectionObserver.inView = true;
+		rerender(<SuggestionList {...props({ onLoadMore, fetchingMore: true })} />);
+
+		expect(live()).toHaveLength(0);
+		expect(onLoadMore).not.toHaveBeenCalled();
+	});
+
 	it('stops observing after the last page', () => {
 		const { rerender } = render(<SuggestionList {...props()} />);
 		rerender(<SuggestionList {...props({ hasMore: false })} />);

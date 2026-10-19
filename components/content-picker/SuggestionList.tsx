@@ -87,11 +87,12 @@ export const SuggestionList = ({
 		if (scrollRef.current) scrollRef.current.scrollTop = 0;
 	}, [query, activeTypeFilter]);
 
-	// Recreated after each page on purpose. The observer only reports changes,
-	// so a page that adds few rows (duplicates, `filter`) would leave the
-	// sentinel in view and stop loading. A new one reports it right away.
+	// Paused while a page loads and recreated after it, on purpose. The
+	// observer only reports changes, so a page that adds few rows (duplicates,
+	// `filter`) would leave the sentinel in view and stop loading. A new one
+	// reports it right away.
 	useEffect(() => {
-		if (!hasMore || !sentinel || !scrollRef.current) return;
+		if (!hasMore || fetchingMore || !sentinel || !scrollRef.current) return;
 		const io = new IntersectionObserver(
 			(entries) => {
 				for (const e of entries) {
