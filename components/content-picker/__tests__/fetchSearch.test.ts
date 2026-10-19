@@ -38,7 +38,7 @@ afterEach(() => {
 });
 
 describe('fetchSearch', () => {
-	it('builds a post-search path with subtype and _embed', async () => {
+	it('builds a post-search path with subtype and _fields', async () => {
 		apiFetchMock = vi.fn().mockResolvedValue(jsonResponse([], 1));
 		await fetchSearch({ query: 'hello', kind: 'post', types: ['post', 'page'], page: 1, perPage: 10 });
 		const call = apiFetchMock.mock.calls[0][0] as { path: string };
@@ -46,7 +46,8 @@ describe('fetchSearch', () => {
 		expect(call.path).toContain('search=hello');
 		expect(call.path).toContain('type=post');
 		expect(call.path).toContain('subtype=post%2Cpage');
-		expect(call.path).toContain('_embed=wp%3Afeaturedmedia%2Cself');
+		expect(call.path).toContain('_fields=id%2Ctitle%2Curl%2Ctype%2Csubtype');
+		expect(call.path).not.toContain('_embed');
 	});
 
 	it('builds a user-search path against wp/v2/users', async () => {
@@ -67,10 +68,6 @@ describe('fetchSearch', () => {
 						url: 'https://example.com/hello',
 						type: 'post',
 						subtype: 'post',
-						_embedded: {
-							self: [{ status: 'draft' }],
-							'wp:featuredmedia': [{ source_url: 'https://example.com/a.jpg' }],
-						},
 					},
 				],
 				1,
@@ -84,8 +81,7 @@ describe('fetchSearch', () => {
 			title: 'Hello world',
 			type: 'post',
 			kind: 'post',
-			status: 'draft',
-			thumbnailUrl: 'https://example.com/a.jpg',
+			url: 'https://example.com/hello',
 		});
 		expect(page.items[0].key).toBeTruthy();
 		expect(page.hasMore).toBe(false);

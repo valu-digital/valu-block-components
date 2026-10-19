@@ -6,7 +6,7 @@ import { useContentSearch } from './useContentSearch';
 import { useDebouncedValue } from './useDebouncedValue';
 import { useLiveRegion } from './useLiveRegion';
 import { useKeyboardNav } from './useKeyboardNav';
-import { dedupeAgainst, generateKey, groupByType, isMaxedOut } from '../utils';
+import { dedupeAgainst, dedupeById, generateKey, groupByType, isMaxedOut } from '../utils';
 import type { ContentItem, ContentPickerProps } from '../types';
 
 export interface ContentPickerControllerArgs {
@@ -109,7 +109,7 @@ export const useContentPickerController = (
 
 	const suggestions = useMemo(() => {
 		if (!query_.data) return [];
-		const flat = query_.data.pages.flatMap((p) => p.items);
+		const flat = dedupeById(query_.data.pages.flatMap((p) => p.items));
 		let filtered = dedupeAgainst(flat, value, uniqueItems);
 		if (currentPostId) {
 			filtered = filtered.filter((item) => item.id !== currentPostId);

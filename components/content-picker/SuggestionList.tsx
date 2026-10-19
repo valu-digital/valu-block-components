@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Button, Spinner } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
@@ -72,21 +72,26 @@ export const SuggestionList = ({
 	onLoadMore,
 }: SuggestionListProps) => {
 	const scrollRef = useRef<HTMLDivElement | null>(null);
-	const sentinelRef = useRef<HTMLDivElement | null>(null);
+	const [sentinel, setSentinel] = useState<HTMLDivElement | null>(null);
+	// Callers pass a new function on every render. Reading it from a ref keeps
+	// the observer alive: a new observer reports the sentinel right away, so
+	// recreating it on every render would load a page on every render.
+	const onLoadMoreRef = useRef(onLoadMore);
+	onLoadMoreRef.current = onLoadMore;
 
 	useEffect(() => {
-		if (!hasMore || !sentinelRef.current || !scrollRef.current) return;
+		if (!hasMore || !sentinel || !scrollRef.current) return;
 		const io = new IntersectionObserver(
 			(entries) => {
 				for (const e of entries) {
-					if (e.isIntersecting) onLoadMore();
+					if (e.isIntersecting) onLoadMoreRef.current();
 				}
 			},
 			{ root: scrollRef.current, rootMargin: '120px' },
 		);
-		io.observe(sentinelRef.current);
+		io.observe(sentinel);
 		return () => io.disconnect();
-	}, [hasMore, onLoadMore]);
+	}, [hasMore, sentinel]);
 
 	const header = headerSlot ? <StickyHeader>{headerSlot}</StickyHeader> : null;
 
@@ -187,7 +192,7 @@ export const SuggestionList = ({
 						</Button>
 					</LoadMoreRow>
 				) : null}
-				<div ref={sentinelRef} aria-hidden="true" />
+				<div ref={setSentinel} aria-hidden="true" />
 			</Listbox>
 		</ListboxScroll>
 	);

@@ -87,6 +87,21 @@ export const dedupeAgainst = <T extends { id: number }>(
 };
 
 /**
+ * Keep the first occurrence of each entity. `/wp/v2/search` has no unique
+ * tie-breaker in its order, so result pages can overlap
+ * (https://core.trac.wordpress.org/ticket/44349).
+ */
+export const dedupeById = <T extends { id: number; kind: string }>(items: T[]): T[] => {
+	const seen = new Set<string>();
+	return items.filter((i) => {
+		const id = `${i.kind}:${i.id}`;
+		if (seen.has(id)) return false;
+		seen.add(id);
+		return true;
+	});
+};
+
+/**
  * Default icons used when a consumer hasn't provided an override.
  * Only users get one by default — everything else renders without a
  * leading glyph unless the consumer supplies an `icons` map.

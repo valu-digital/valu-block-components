@@ -1,7 +1,7 @@
 import apiFetch from '@wordpress/api-fetch';
 import { addQueryArgs } from '@wordpress/url';
 
-import type { ContentItem, ContentKind, ContentStatus, RequestContext } from '../types';
+import type { ContentItem, ContentKind, RequestContext } from '../types';
 import { decodeTitle, generateKey } from '../utils';
 
 export interface FetchSearchArgs {
@@ -27,19 +27,6 @@ interface WPRestSearchResult {
 	url?: string;
 	type: string;
 	subtype: string;
-	_embedded?: {
-		self?: Array<{
-			status?: ContentStatus;
-			featured_media?: number;
-			['wp:featuredmedia']?: unknown;
-		}>;
-		'wp:featuredmedia'?: Array<{
-			source_url?: string;
-			media_details?: {
-				sizes?: Record<string, { source_url?: string }>;
-			};
-		}>;
-	};
 }
 
 interface WPUser {
@@ -48,21 +35,6 @@ interface WPUser {
 	link?: string;
 	avatar_urls?: Record<string, string>;
 }
-
-const pickThumbnail = (result: WPRestSearchResult): string | undefined => {
-	const media = result._embedded?.['wp:featuredmedia']?.[0];
-	if (!media) return undefined;
-	const sizes = media.media_details?.sizes;
-	return (
-		sizes?.thumbnail?.source_url ??
-		sizes?.medium?.source_url ??
-		media.source_url ??
-		undefined
-	);
-};
-
-const pickStatus = (result: WPRestSearchResult): ContentStatus | undefined =>
-	result._embedded?.self?.[0]?.status;
 
 const buildPath = (args: FetchSearchArgs): string => {
 	const { kind, types, query, page, perPage } = args;
@@ -79,7 +51,9 @@ const buildPath = (args: FetchSearchArgs): string => {
 		type: kind,
 		per_page: perPage,
 		page,
-		_embed: 'wp:featuredmedia,self',
+		// Search results carry no featured media or status to embed, so ask
+		// only for what the picker maps.
+		_fields: 'id,title,url,type,subtype',
 	};
 	if (types && types.length > 0) {
 		params.subtype = types.join(',');
@@ -137,8 +111,6 @@ export const fetchSearch = async (args: FetchSearchArgs): Promise<FetchSearchPag
 			kind: args.kind,
 			title: decodeTitle(r.title),
 			url: r.url,
-			status: pickStatus(r),
-			thumbnailUrl: pickThumbnail(r),
 			raw: r,
 		}));
 	}

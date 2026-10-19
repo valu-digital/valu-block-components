@@ -39,7 +39,8 @@ interaction:
 
 ## Highlights
 
-- **Featured image thumbnails** via `_embed=wp:featuredmedia`.
+- **Thumbnails** for users (avatars) and for any item you give a
+  `thumbnailUrl`, for example in `filter`.
 - **Status badges** (Draft, Pending, Private, Scheduled, Trash) and
   **post-type badges**, each with semantic colors using the admin theme
   tokens.
@@ -83,7 +84,7 @@ interaction:
 | `showTypeBadge` | `boolean` | `types.length > 1` | Show a `POST` / `PAGE` / `CATEGORY` pill on each selected row. |
 | `icons` | `Record<string, IconType>` | `{ user: people }` | Icon overrides keyed by post-type / taxonomy / `'user'` slug. Accepts anything `<Icon>` accepts (WP icons, JSX, custom components). By default only users show an icon; everything else is icon-less unless it has a thumbnail or a consumer override. |
 | `filter` | `(items, ctx) => items` | — | Final filter over normalized suggestions. |
-| `request` | `(path, ctx) => path` | — | Rewrite the REST path before fetching. |
+| `request` | `(path, ctx) => path` | — | Rewrite the REST path before fetching. Post searches send `_fields=id,title,url,type,subtype`; widen it here if you need more fields in `raw`. |
 | `renderSuggestion` | `(item, state) => ReactNode` | — | Custom suggestion renderer. |
 | `renderSelected` | `(item) => ReactNode` | — | Custom selected-row renderer. |
 | `renderGroupHeading` | `(type, items) => ReactNode` | — | Custom group heading. |

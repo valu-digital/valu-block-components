@@ -93,12 +93,17 @@ export const Input = styled.input`
 	}
 `;
 
+// Both variants cap the list so ListboxScroll clips its content. It is the
+// infinite-scroll observer root, and an unclipped root sees the sentinel at
+// once and loads every page.
+const suggestionsMaxHeight = '380px';
+
 export const SuggestionsShell = styled.div<{ inline?: boolean }>`
 	background: ${t.bg};
 	border: 1px solid ${t.gray300};
 	border-radius: ${t.radiusMd};
 	overflow: hidden;
-	max-height: 380px;
+	max-height: ${suggestionsMaxHeight};
 	display: flex;
 	flex-direction: column;
 
@@ -110,6 +115,12 @@ export const SuggestionsShell = styled.div<{ inline?: boolean }>`
 			: css`
 					box-shadow: ${t.shadowPopover};
 				`}
+`;
+
+export const PopoverBody = styled.div`
+	display: flex;
+	flex-direction: column;
+	max-height: ${suggestionsMaxHeight};
 `;
 
 export const ListboxScroll = styled.div`
