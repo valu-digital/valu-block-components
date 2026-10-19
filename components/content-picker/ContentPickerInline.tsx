@@ -141,6 +141,7 @@ export const ContentPickerInline = (props: ContentPickerInlineProps) => {
 						hasMore={controller.hasMore}
 						error={controller.error}
 						query={controller.debouncedQuery}
+						activeTypeFilter={controller.activeTypeFilter}
 						highlightedIndex={controller.highlightedIndex}
 						selectedKeys={selectedKeys}
 						icons={icons}

@@ -7,7 +7,7 @@ import { SuggestionList } from './SuggestionList';
 import { TypeFilter } from './TypeFilter';
 import { useContentPickerController } from './hooks/useContentPickerController';
 import { aria } from './utils';
-import { MaxedOutBanner } from './styles';
+import { MaxedOutBanner, PopoverBody } from './styles';
 import { EmotionCacheProvider } from './styles/emotionCache';
 import type { ContentItem, ContentPickerLabels, ContentPickerProps } from './types';
 
@@ -201,7 +201,7 @@ export const ContentPickerPopover = (props: ContentPickerPopoverProps) => {
 					className="valu-content-picker__popover"
 				>
 					<EmotionCacheProvider>
-						<div
+						<PopoverBody
 							ref={popoverBodyRef}
 							style={{
 								minWidth: inputRef.current.offsetWidth,
@@ -219,6 +219,7 @@ export const ContentPickerPopover = (props: ContentPickerPopoverProps) => {
 								hasMore={controller.hasMore}
 								error={controller.error}
 								query={controller.debouncedQuery}
+								activeTypeFilter={controller.activeTypeFilter}
 								highlightedIndex={controller.highlightedIndex}
 								selectedKeys={selectedKeys}
 								icons={icons}
@@ -240,7 +241,7 @@ export const ContentPickerPopover = (props: ContentPickerPopoverProps) => {
 								onSelect={(item) => controller.select(item)}
 								onLoadMore={() => controller.loadMore()}
 							/>
-						</div>
+						</PopoverBody>
 					</EmotionCacheProvider>
 				</Popover>
 			) : null}

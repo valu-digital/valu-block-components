@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	dedupeAgainst,
+	dedupeById,
 	generateKey,
 	groupByType,
 	humanizeStatus,
@@ -54,6 +55,21 @@ describe('dedupeAgainst', () => {
 		const picked = [item({ id: 1 })];
 		const results = [item({ id: 1 }), item({ id: 2 })];
 		expect(dedupeAgainst(results, picked, false)).toHaveLength(2);
+	});
+});
+
+describe('dedupeById', () => {
+	it('keeps the first occurrence of each id', () => {
+		const first = item({ id: 1, title: 'First' });
+		const results = [first, item({ id: 2 }), item({ id: 1, title: 'Second' })];
+		const deduped = dedupeById(results);
+		expect(deduped.map((i) => i.id)).toEqual([1, 2]);
+		expect(deduped[0]).toBe(first);
+	});
+
+	it('treats the same id in different kinds as distinct', () => {
+		const results = [item({ id: 1, kind: 'post' }), item({ id: 1, kind: 'term' })];
+		expect(dedupeById(results)).toHaveLength(2);
 	});
 });
 

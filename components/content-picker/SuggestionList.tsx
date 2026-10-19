@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Button, Spinner } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
@@ -32,6 +32,7 @@ export interface SuggestionListProps {
 	hasMore: boolean;
 	error: unknown;
 	query: string;
+	activeTypeFilter: string | null;
 	highlightedIndex: number;
 	selectedKeys: Set<string>;
 	icons?: ContentPickerIconMap;
@@ -59,6 +60,7 @@ export const SuggestionList = ({
 	hasMore,
 	error,
 	query,
+	activeTypeFilter,
 	highlightedIndex,
 	selectedKeys,
 	icons,
@@ -72,21 +74,36 @@ export const SuggestionList = ({
 	onLoadMore,
 }: SuggestionListProps) => {
 	const scrollRef = useRef<HTMLDivElement | null>(null);
-	const sentinelRef = useRef<HTMLDivElement | null>(null);
+	const [sentinel, setSentinel] = useState<HTMLDivElement | null>(null);
+	// Callers pass a new function on every render. Reading it from a ref keeps
+	// the observer from being recreated on every render: a new observer
+	// reports the sentinel right away, which would load a page every time.
+	const onLoadMoreRef = useRef(onLoadMore);
+	onLoadMoreRef.current = onLoadMore;
 
+	// A new search starts from the top. Left at the bottom, the shorter list
+	// would show the sentinel at once and load a second page.
 	useEffect(() => {
-		if (!hasMore || !sentinelRef.current || !scrollRef.current) return;
+		if (scrollRef.current) scrollRef.current.scrollTop = 0;
+	}, [query, activeTypeFilter]);
+
+	// Paused while a page loads and recreated after it, on purpose. The
+	// observer only reports changes, so a page that adds few rows (duplicates,
+	// `filter`) would leave the sentinel in view and stop loading. A new one
+	// reports it right away.
+	useEffect(() => {
+		if (!hasMore || fetchingMore || !sentinel || !scrollRef.current) return;
 		const io = new IntersectionObserver(
 			(entries) => {
 				for (const e of entries) {
-					if (e.isIntersecting) onLoadMore();
+					if (e.isIntersecting) onLoadMoreRef.current();
 				}
 			},
 			{ root: scrollRef.current, rootMargin: '120px' },
 		);
-		io.observe(sentinelRef.current);
+		io.observe(sentinel);
 		return () => io.disconnect();
-	}, [hasMore, onLoadMore]);
+	}, [hasMore, sentinel, fetchingMore]);
 
 	const header = headerSlot ? <StickyHeader>{headerSlot}</StickyHeader> : null;
 
@@ -187,7 +204,7 @@ export const SuggestionList = ({
 						</Button>
 					</LoadMoreRow>
 				) : null}
-				<div ref={sentinelRef} aria-hidden="true" />
+				<div ref={setSentinel} aria-hidden="true" />
 			</Listbox>
 		</ListboxScroll>
 	);

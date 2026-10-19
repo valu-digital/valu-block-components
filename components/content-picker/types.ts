@@ -203,7 +203,9 @@ export interface ContentPickerProps {
 	/**
 	 * Rewrite the REST path before it is fetched. Use to add custom query
 	 * params (e.g. `_fields`, meta filters). Replaces the old
-	 * `queryFilter` / `queryFieldsFilter`.
+	 * `queryFilter` / `queryFieldsFilter`. Post searches already send
+	 * `_fields=id,title,url,type,subtype`; widen it if you read more from
+	 * `raw` (`addQueryArgs` replaces the existing value).
 	 */
 	request?: (path: string, ctx: RequestContext) => string;
 
