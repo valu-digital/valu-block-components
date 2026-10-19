@@ -6,6 +6,8 @@ import type { ContentItem } from '../types';
 
 class FakeIntersectionObserver {
 	static instances: FakeIntersectionObserver[] = [];
+	/** Whether the sentinel is in view when an observer starts observing. */
+	static inView = false;
 
 	callback: IntersectionObserverCallback;
 	disconnected = false;
@@ -15,7 +17,10 @@ class FakeIntersectionObserver {
 		FakeIntersectionObserver.instances.push(this);
 	}
 
-	observe() {}
+	// Like the real one, report the current state as soon as observing starts.
+	observe() {
+		this.trigger(FakeIntersectionObserver.inView);
+	}
 
 	disconnect() {
 		this.disconnected = true;
@@ -52,6 +57,7 @@ const props = (over: Partial<SuggestionListProps> = {}): SuggestionListProps => 
 	hasMore: true,
 	error: null,
 	query: '',
+	activeTypeFilter: null,
 	highlightedIndex: -1,
 	selectedKeys: new Set(),
 	labels: {},
@@ -65,6 +71,7 @@ const props = (over: Partial<SuggestionListProps> = {}): SuggestionListProps => 
 describe('SuggestionList infinite scroll', () => {
 	beforeEach(() => {
 		FakeIntersectionObserver.instances = [];
+		FakeIntersectionObserver.inView = false;
 		vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
 	});
 
@@ -91,6 +98,33 @@ describe('SuggestionList infinite scroll', () => {
 
 		live()[0].trigger(false);
 		expect(onLoadMore).not.toHaveBeenCalled();
+	});
+
+	it('loads again when a page leaves the sentinel in view', () => {
+		const onLoadMore = vi.fn();
+		const { rerender } = render(<SuggestionList {...props({ onLoadMore })} />);
+		rerender(<SuggestionList {...props({ onLoadMore, fetchingMore: true })} />);
+		onLoadMore.mockClear();
+
+		// The page added too few rows to push the sentinel out of view.
+		FakeIntersectionObserver.inView = true;
+		rerender(<SuggestionList {...props({ onLoadMore, fetchingMore: false })} />);
+
+		expect(onLoadMore).toHaveBeenCalledTimes(1);
+		expect(live()).toHaveLength(1);
+	});
+
+	it('scrolls back to the top when the search changes', () => {
+		const { container, rerender } = render(<SuggestionList {...props({ query: 'a' })} />);
+		const scroller = container.querySelector('[role="listbox"]')!.parentElement!;
+		scroller.scrollTop = 500;
+
+		rerender(<SuggestionList {...props({ query: 'ab' })} />);
+		expect(scroller.scrollTop).toBe(0);
+
+		scroller.scrollTop = 500;
+		rerender(<SuggestionList {...props({ query: 'ab', activeTypeFilter: 'page' })} />);
+		expect(scroller.scrollTop).toBe(0);
 	});
 
 	it('stops observing after the last page', () => {

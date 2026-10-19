@@ -32,6 +32,7 @@ export interface SuggestionListProps {
 	hasMore: boolean;
 	error: unknown;
 	query: string;
+	activeTypeFilter: string | null;
 	highlightedIndex: number;
 	selectedKeys: Set<string>;
 	icons?: ContentPickerIconMap;
@@ -59,6 +60,7 @@ export const SuggestionList = ({
 	hasMore,
 	error,
 	query,
+	activeTypeFilter,
 	highlightedIndex,
 	selectedKeys,
 	icons,
@@ -74,11 +76,20 @@ export const SuggestionList = ({
 	const scrollRef = useRef<HTMLDivElement | null>(null);
 	const [sentinel, setSentinel] = useState<HTMLDivElement | null>(null);
 	// Callers pass a new function on every render. Reading it from a ref keeps
-	// the observer alive: a new observer reports the sentinel right away, so
-	// recreating it on every render would load a page on every render.
+	// the observer from being recreated on every render: a new observer
+	// reports the sentinel right away, which would load a page every time.
 	const onLoadMoreRef = useRef(onLoadMore);
 	onLoadMoreRef.current = onLoadMore;
 
+	// A new search starts from the top. Left at the bottom, the shorter list
+	// would show the sentinel at once and load a second page.
+	useEffect(() => {
+		if (scrollRef.current) scrollRef.current.scrollTop = 0;
+	}, [query, activeTypeFilter]);
+
+	// Recreated after each page on purpose. The observer only reports changes,
+	// so a page that adds few rows (duplicates, `filter`) would leave the
+	// sentinel in view and stop loading. A new one reports it right away.
 	useEffect(() => {
 		if (!hasMore || !sentinel || !scrollRef.current) return;
 		const io = new IntersectionObserver(
@@ -91,7 +102,7 @@ export const SuggestionList = ({
 		);
 		io.observe(sentinel);
 		return () => io.disconnect();
-	}, [hasMore, sentinel]);
+	}, [hasMore, sentinel, fetchingMore]);
 
 	const header = headerSlot ? <StickyHeader>{headerSlot}</StickyHeader> : null;
 

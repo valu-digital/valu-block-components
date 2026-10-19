@@ -219,6 +219,7 @@ export const ContentPickerPopover = (props: ContentPickerPopoverProps) => {
 								hasMore={controller.hasMore}
 								error={controller.error}
 								query={controller.debouncedQuery}
+								activeTypeFilter={controller.activeTypeFilter}
 								highlightedIndex={controller.highlightedIndex}
 								selectedKeys={selectedKeys}
 								icons={icons}
