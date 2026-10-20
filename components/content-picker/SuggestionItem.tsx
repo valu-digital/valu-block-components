@@ -10,7 +10,7 @@ import {
 	TypeHint,
 } from './styles';
 import { StatusBadge } from './badges/StatusBadge';
-import { humanizeType, resolveItemIcon, toDisplayUrl } from './utils';
+import { resolveItemIcon, toDisplayUrl } from './utils';
 import type {
 	ContentItem,
 	ContentPickerIconMap,
@@ -22,7 +22,8 @@ export interface SuggestionItemProps {
 	optionId: string;
 	highlighted: boolean;
 	selected: boolean;
-	showTypeHint: boolean;
+	/** Type name shown after the title, or null for none. */
+	typeHint: string | null;
 	showUrl: boolean;
 	icons?: ContentPickerIconMap;
 	onHover: () => void;
@@ -35,7 +36,7 @@ export const SuggestionItem = ({
 	optionId,
 	highlighted,
 	selected,
-	showTypeHint,
+	typeHint,
 	showUrl,
 	icons,
 	onHover,
@@ -113,9 +114,7 @@ export const SuggestionItem = ({
 				{showUrl && displayUrl ? <SecondaryText>{displayUrl}</SecondaryText> : null}
 			</ItemBody>
 			{hasAbnormalStatus ? <StatusBadge status={item.status!} /> : null}
-			{showTypeHint ? (
-				<TypeHint>{humanizeType(item.type, item.kind)}</TypeHint>
-			) : null}
+			{typeHint ? <TypeHint>{typeHint}</TypeHint> : null}
 		</Option>
 	);
 };

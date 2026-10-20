@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 import { __ } from '@wordpress/i18n';
 
 import { tokens as t } from './styles/tokens';
-import { humanizeType } from './utils';
+import { useTypeLabels } from './hooks/useTypeLabels';
 import type { ContentKind } from './types';
 
 const Row = styled.div`
@@ -56,6 +56,8 @@ export interface TypeFilterProps {
 }
 
 export const TypeFilter = ({ types, kind, active, onChange, allLabel }: TypeFilterProps) => {
+	const typeLabels = useTypeLabels(types, kind);
+
 	if (types.length < 2) return null;
 
 	return (
@@ -78,7 +80,7 @@ export const TypeFilter = ({ types, kind, active, onChange, allLabel }: TypeFilt
 					onClick={() => onChange(active === type ? null : type)}
 					onMouseDown={(e) => e.preventDefault()}
 				>
-					{humanizeType(type, kind)}
+					{typeLabels[type].plural}
 				</Chip>
 			))}
 		</Row>

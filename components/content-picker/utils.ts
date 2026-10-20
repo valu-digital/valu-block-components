@@ -42,30 +42,33 @@ export const groupByType = (items: ContentItem[]): Array<[string, ContentItem[]]
 	return Array.from(map.entries());
 };
 
-const postTypeLabels: Record<string, string> = {
-	post: 'Post',
-	page: 'Page',
-	attachment: 'Media',
-};
-
+/**
+ * A name for a type without its registered labels. Use `useTypeLabels`,
+ * which only falls back to this while the labels load.
+ */
 export const humanizeType = (type: string, kind: ContentKind): string => {
 	if (kind === 'user') return __('User', 'valu-block-components');
+	// Built at call time, so `__()` sees the locale data loaded by then.
+	const postTypeLabels: Record<string, string> = {
+		post: __('Post', 'valu-block-components'),
+		page: __('Page', 'valu-block-components'),
+		attachment: __('Media', 'valu-block-components'),
+	};
 	if (postTypeLabels[type]) return postTypeLabels[type];
 	return type
 		.replace(/[-_]+/g, ' ')
 		.replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
-const statusLabels: Partial<Record<ContentStatus, string>> = {
-	draft: 'Draft',
-	pending: 'Pending',
-	private: 'Private',
-	future: 'Scheduled',
-	trash: 'Trash',
-};
-
 export const humanizeStatus = (status: ContentStatus | undefined): string | null => {
 	if (!status || status === 'publish') return null;
+	const statusLabels: Partial<Record<ContentStatus, string>> = {
+		draft: __('Draft', 'valu-block-components'),
+		pending: __('Pending', 'valu-block-components'),
+		private: __('Private', 'valu-block-components'),
+		future: __('Scheduled', 'valu-block-components'),
+		trash: __('Trash', 'valu-block-components'),
+	};
 	return statusLabels[status] ?? status;
 };
 

@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 
 import { tokens as t } from '../styles/tokens';
 import type { ContentKind } from '../types';
-import { humanizeType } from '../utils';
+import { useTypeLabel } from '../hooks/useTypeLabels';
 
 const Pill = styled.span`
 	display: inline-flex;
@@ -27,6 +27,7 @@ export interface TypeBadgeProps {
 	label?: string;
 }
 
-export const TypeBadge = ({ type, kind, label }: TypeBadgeProps) => (
-	<Pill>{label ?? humanizeType(type, kind)}</Pill>
-);
+export const TypeBadge = ({ type, kind, label }: TypeBadgeProps) => {
+	const typeLabel = useTypeLabel(type, kind);
+	return <Pill>{label ?? typeLabel.singular}</Pill>;
+};

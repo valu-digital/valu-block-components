@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Button, Spinner } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
 import { SuggestionItem } from './SuggestionItem';
+import { useTypeLabels } from './hooks/useTypeLabels';
 import {
 	EmptyState,
 	ErrorState,
@@ -13,7 +14,7 @@ import {
 	LoadingState,
 	StickyHeader,
 } from './styles';
-import { aria, humanizeType } from './utils';
+import { aria } from './utils';
 import type {
 	ContentItem,
 	ContentKind,
@@ -105,6 +106,12 @@ export const SuggestionList = ({
 		return () => io.disconnect();
 	}, [hasMore, sentinel, fetchingMore]);
 
+	const types = useMemo(
+		() => Array.from(new Set(suggestions.map((item) => item.type))),
+		[suggestions],
+	);
+	const typeLabels = useTypeLabels(types, kind);
+
 	const header = headerSlot ? <StickyHeader>{headerSlot}</StickyHeader> : null;
 
 	if (error) {
@@ -167,7 +174,7 @@ export const SuggestionList = ({
 								optionId={optionId}
 								highlighted={index === highlightedIndex}
 								selected={selectedKeys.has(item.key)}
-								showTypeHint={showTypeHint}
+								typeHint={showTypeHint ? typeLabels[item.type].singular : null}
 								showUrl={showUrl}
 								icons={icons}
 								onHover={() => onHover(index)}
@@ -184,7 +191,7 @@ export const SuggestionList = ({
 							<GroupHeading id={headingId}>
 								{renderGroupHeading
 									? renderGroupHeading(type, items)
-									: humanizeType(type, kind)}
+									: typeLabels[type].plural}
 							</GroupHeading>
 							{optionNodes}
 						</div>

@@ -54,6 +54,9 @@ interaction:
 - **Deletion / trash detection** — picked items are hydrated from
   `@wordpress/core-data`; deleted or trashed items render in a muted
   state with a clear remove affordance.
+- **Registered type names** — the type filter, group headings, type
+  hints and badges use the labels a post type or taxonomy was registered
+  with, which WordPress translates to the user's locale.
 - **Controlled or uncontrolled** — pass `value` + `onChange`, or use
   `defaultValue`.
 
