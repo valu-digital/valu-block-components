@@ -1,8 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
 
+import { createCoreRegistry } from '../../../test-utils/fakeCoreData';
 import { SuggestionList, type SuggestionListProps } from '../SuggestionList';
 import type { ContentItem } from '../types';
+
+vi.mock('@wordpress/core-data', () => import('../../../test-utils/fakeCoreData'));
 
 class FakeIntersectionObserver {
 	static instances: FakeIntersectionObserver[] = [];
@@ -69,7 +72,10 @@ const props = (over: Partial<SuggestionListProps> = {}): SuggestionListProps => 
 });
 
 describe('SuggestionList infinite scroll', () => {
+	let wrapper: ReturnType<typeof createCoreRegistry>['wrapper'];
+
 	beforeEach(() => {
+		({ wrapper } = createCoreRegistry());
 		FakeIntersectionObserver.instances = [];
 		FakeIntersectionObserver.inView = false;
 		vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
@@ -82,7 +88,9 @@ describe('SuggestionList infinite scroll', () => {
 	it('keeps one observer when onLoadMore changes between renders', () => {
 		const first = vi.fn();
 		const second = vi.fn();
-		const { rerender } = render(<SuggestionList {...props({ onLoadMore: first })} />);
+		const { rerender } = render(<SuggestionList {...props({ onLoadMore: first })} />, {
+			wrapper,
+		});
 		rerender(<SuggestionList {...props({ onLoadMore: second })} />);
 
 		expect(FakeIntersectionObserver.instances).toHaveLength(1);
@@ -94,7 +102,7 @@ describe('SuggestionList infinite scroll', () => {
 
 	it('does not load when the sentinel is out of view', () => {
 		const onLoadMore = vi.fn();
-		render(<SuggestionList {...props({ onLoadMore })} />);
+		render(<SuggestionList {...props({ onLoadMore })} />, { wrapper });
 
 		live()[0].trigger(false);
 		expect(onLoadMore).not.toHaveBeenCalled();
@@ -102,7 +110,7 @@ describe('SuggestionList infinite scroll', () => {
 
 	it('loads again when a page leaves the sentinel in view', () => {
 		const onLoadMore = vi.fn();
-		const { rerender } = render(<SuggestionList {...props({ onLoadMore })} />);
+		const { rerender } = render(<SuggestionList {...props({ onLoadMore })} />, { wrapper });
 		rerender(<SuggestionList {...props({ onLoadMore, fetchingMore: true })} />);
 		onLoadMore.mockClear();
 
@@ -115,7 +123,9 @@ describe('SuggestionList infinite scroll', () => {
 	});
 
 	it('scrolls back to the top when the search changes', () => {
-		const { container, rerender } = render(<SuggestionList {...props({ query: 'a' })} />);
+		const { container, rerender } = render(<SuggestionList {...props({ query: 'a' })} />, {
+			wrapper,
+		});
 		const scroller = container.querySelector('[role="listbox"]')!.parentElement!;
 		scroller.scrollTop = 500;
 
@@ -129,7 +139,7 @@ describe('SuggestionList infinite scroll', () => {
 
 	it('does not observe while a page loads', () => {
 		const onLoadMore = vi.fn();
-		const { rerender } = render(<SuggestionList {...props({ onLoadMore })} />);
+		const { rerender } = render(<SuggestionList {...props({ onLoadMore })} />, { wrapper });
 		onLoadMore.mockClear();
 
 		FakeIntersectionObserver.inView = true;
@@ -140,7 +150,7 @@ describe('SuggestionList infinite scroll', () => {
 	});
 
 	it('stops observing after the last page', () => {
-		const { rerender } = render(<SuggestionList {...props()} />);
+		const { rerender } = render(<SuggestionList {...props()} />, { wrapper });
 		rerender(<SuggestionList {...props({ hasMore: false })} />);
 
 		expect(live()).toHaveLength(0);

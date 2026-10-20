@@ -6,7 +6,14 @@ import { useContentSearch } from './useContentSearch';
 import { useDebouncedValue } from './useDebouncedValue';
 import { useLiveRegion } from './useLiveRegion';
 import { useKeyboardNav } from './useKeyboardNav';
-import { dedupeAgainst, dedupeById, generateKey, groupByType, isMaxedOut } from '../utils';
+import {
+	dedupeAgainst,
+	dedupeById,
+	generateKey,
+	groupByType,
+	isMaxedOut,
+	itemName,
+} from '../utils';
 import type { ContentItem, ContentPickerProps } from '../types';
 
 export interface ContentPickerControllerArgs {
@@ -45,8 +52,6 @@ export interface ContentPickerController {
 	loadMore: () => void;
 	fetchingMore: boolean;
 	select: (item: ContentItem) => void;
-	remove: (key: string) => void;
-	reorder: (from: number, to: number) => void;
 	replace: (items: ContentItem[]) => void;
 	maxedOut: boolean;
 	total: number;
@@ -164,53 +169,13 @@ export const useContentPickerController = (
 				sprintf(
 					/* translators: 1: title, 2: selected count */
 					__('Added %1$s. %2$d selected.', 'valu-block-components'),
-					normalized.title,
+					itemName(normalized),
 					next.length,
 				),
 			);
 			onSelectSideEffect?.();
 		},
 		[maxedOut, maxItems, value, onChange, announceImmediate, onSelectSideEffect],
-	);
-
-	const remove = useCallback(
-		(key: string) => {
-			const target = value.find((i) => i.key === key);
-			const next = value.filter((i) => i.key !== key);
-			onChange(next);
-			if (target) {
-				announceImmediate(
-					sprintf(
-						/* translators: %s: title of the removed item */
-						__('Removed %s.', 'valu-block-components'),
-						target.title,
-					),
-				);
-			}
-		},
-		[value, onChange, announceImmediate],
-	);
-
-	const reorder = useCallback(
-		(from: number, to: number) => {
-			if (from === to || from < 0 || to < 0 || from >= value.length || to >= value.length) {
-				return;
-			}
-			const next = value.slice();
-			const [moved] = next.splice(from, 1);
-			next.splice(to, 0, moved);
-			onChange(next);
-			announceImmediate(
-				sprintf(
-					/* translators: 1: title, 2: position, 3: total */
-					__('Moved %1$s to position %2$d of %3$d.', 'valu-block-components'),
-					moved.title,
-					to + 1,
-					next.length,
-				),
-			);
-		},
-		[value, onChange, announceImmediate],
 	);
 
 	const { highlightedIndex, setHighlightedIndex, reset: resetHighlight, handleKeyDown } =
@@ -244,8 +209,6 @@ export const useContentPickerController = (
 		},
 		fetchingMore: query_.isFetchingNextPage,
 		select,
-		remove,
-		reorder,
 		replace,
 		maxedOut,
 		total: query_.data?.pages[0]?.total ?? 0,

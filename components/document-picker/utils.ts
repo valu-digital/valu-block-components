@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { decodeEntities } from '@wordpress/html-entities';
 import { __ } from '@wordpress/i18n';
 
-import type { DocumentItem } from './types';
+import type { DocumentItem, ResolvedDocumentItem } from './types';
 
 export const generateKey = (): string => uuidv4();
 
@@ -130,6 +130,22 @@ export const mapMediaToDocumentItem = (raw: MediaRecordShape): DocumentItem => {
 /** Effective display name for an item: user-authored label, else title. */
 export const displayTitle = (item: Pick<DocumentItem, 'label' | 'title'>): string =>
 	item.label?.trim() || item.title;
+
+/**
+ * Name of a document for button labels and announcements. Falls back to the
+ * row's state when there's no title, e.g. for a file deleted from the media
+ * library.
+ */
+export const documentName = (item: ResolvedDocumentItem): string => {
+	const title = displayTitle(item);
+	if (title) return title;
+	if (item.missing === 'deleted') {
+		/* translators: names a document that no longer exists, in "Remove %s" etc. */
+		return __('unavailable document', 'valu-block-components');
+	}
+	/* translators: names a document without a title, in "Remove %s" etc. */
+	return __('untitled document', 'valu-block-components');
+};
 
 /** Filter out items already present in `value` by attachment id. */
 export const dedupeAgainst = (

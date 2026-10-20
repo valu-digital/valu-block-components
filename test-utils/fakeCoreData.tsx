@@ -19,7 +19,7 @@ export const store = createReduxStore('core', {
 		receive: (key: string, record: unknown) => ({ type: 'RECEIVE', key, record }),
 	},
 	selectors: {
-		getEntityRecord: (state: State, kind: string, name: string, id: number) =>
+		getEntityRecord: (state: State, kind: string, name: string, id: number | string) =>
 			state[`${kind}:${name}:${id}`],
 	},
 	resolvers: {
@@ -32,7 +32,7 @@ export const createCoreRegistry = () => {
 	registry.register(store);
 
 	/** Finish resolving a record, as found (`record`) or as not found. */
-	const resolve = (kind: string, name: string, id: number, record?: object) => {
+	const resolve = (kind: string, name: string, id: number | string, record?: object) => {
 		if (record) registry.dispatch(store).receive(`${kind}:${name}:${id}`, record);
 		registry.dispatch(store).finishResolution('getEntityRecord', [kind, name, id]);
 	};

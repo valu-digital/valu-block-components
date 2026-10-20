@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode } from 'react';
+import { useRef, type CSSProperties, type ReactNode, type RefObject } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button, Icon } from '@wordpress/components';
@@ -22,7 +22,7 @@ import {
 } from './styles';
 import { StatusBadge } from './badges/StatusBadge';
 import { TypeBadge } from './badges/TypeBadge';
-import { resolveItemIcon } from './utils';
+import { itemName, resolveItemIcon } from './utils';
 import type {
 	ContentPickerIconMap,
 	ContentPickerLabels,
@@ -37,6 +37,8 @@ export interface SelectedItemProps {
 	showTypeBadge: boolean;
 	icons?: ContentPickerIconMap;
 	labels: ContentPickerLabels;
+	/** Id of the remove button, so the list can move focus to it. */
+	removeButtonId: string;
 	onRemove: () => void;
 	onMoveUp?: () => void;
 	onMoveDown?: () => void;
@@ -51,6 +53,7 @@ export const SelectedItem = ({
 	showTypeBadge,
 	icons,
 	labels,
+	removeButtonId,
 	onRemove,
 	onMoveUp,
 	onMoveDown,
@@ -74,27 +77,42 @@ export const SelectedItem = ({
 	const trashLabel =
 		labels.statusTrash ?? __('This item is in the trash.', 'valu-block-components');
 
+	const name = itemName(item);
 	const removeLabel = labels.remove
 		? labels.remove
 		: sprintf(
 				/* translators: %s: item title */
 				__('Remove %s', 'valu-block-components'),
-				item.title,
+				name,
 			);
 	const moveUpLabel = labels.moveUp
 		? labels.moveUp
 		: sprintf(
 				/* translators: %s: item title */
 				__('Move %s up', 'valu-block-components'),
-				item.title,
+				name,
 			);
 	const moveDownLabel = labels.moveDown
 		? labels.moveDown
 		: sprintf(
 				/* translators: %s: item title */
 				__('Move %s down', 'valu-block-components'),
-				item.title,
+				name,
 			);
+	const moveUpRef = useRef<HTMLButtonElement>(null);
+	const moveDownRef = useRef<HTMLButtonElement>(null);
+
+	// React reorders the list by moving row nodes, and a moved node loses
+	// focus. Put it back on the button that had it.
+	const keepFocus =
+		(move: (() => void) | undefined, button: RefObject<HTMLButtonElement>) => () => {
+			const hadFocus = button.current === button.current?.ownerDocument.activeElement;
+			move?.();
+			if (hadFocus) {
+				requestAnimationFrame(() => button.current?.focus());
+			}
+		};
+
 	const hasAbnormalStatus = item.status && item.status !== 'publish';
 	const resolvedIcon = resolveItemIcon(item, icons);
 	const hasThumbImage = Boolean(item.thumbnailUrl) && !isMissing && !isTrash;
@@ -154,24 +172,29 @@ export const SelectedItem = ({
 				{orderable ? (
 					<ReorderStack>
 						<Button
+							ref={moveUpRef}
 							size="small"
 							variant="tertiary"
 							icon={chevronUp}
 							label={moveUpLabel}
-							onClick={onMoveUp}
+							onClick={keepFocus(onMoveUp, moveUpRef)}
 							disabled={index === 0 || !onMoveUp}
+							accessibleWhenDisabled
 						/>
 						<Button
+							ref={moveDownRef}
 							size="small"
 							variant="tertiary"
 							icon={chevronDown}
 							label={moveDownLabel}
-							onClick={onMoveDown}
+							onClick={keepFocus(onMoveDown, moveDownRef)}
 							disabled={index === total - 1 || !onMoveDown}
+							accessibleWhenDisabled
 						/>
 					</ReorderStack>
 				) : null}
 				<Button
+					id={removeButtonId}
 					size="small"
 					variant="tertiary"
 					icon={closeSmall}

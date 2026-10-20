@@ -6,6 +6,7 @@ import { ContentPickerInline } from './ContentPickerInline';
 import { SelectedList } from './SelectedList';
 import { EmotionCacheProvider } from './styles/emotionCache';
 import { Root } from './styles';
+import { focusAfterRender, isMaxedOut, removeButtonId } from './utils';
 import type {
 	ContentItem,
 	ContentPickerLabels,
@@ -105,6 +106,22 @@ export const ContentPicker = ({
 
 	const showInput = !(Number.isFinite(maxItems) && value.length >= maxItems);
 
+	const rootRef = useRef<HTMLDivElement | null>(null);
+
+	// A selection that fills the picker removes the search input, and focus
+	// with it. Move focus to the new row instead.
+	const handleSelect = useCallback(
+		(next: ContentItem[]) => {
+			handleChange(next);
+			const added = next[next.length - 1];
+			const doc = rootRef.current?.ownerDocument;
+			if (added && doc && isMaxedOut(next, maxItems)) {
+				focusAfterRender(doc, removeButtonId(rootId, added.key));
+			}
+		},
+		[handleChange, maxItems, rootId],
+	);
+
 	const variantProps = useMemo(
 		() => ({
 			rootId,
@@ -129,7 +146,7 @@ export const ContentPicker = ({
 			disableTypeFilter,
 			showUrl,
 			value,
-			onChange: handleChange,
+			onChange: handleSelect,
 			labels,
 		}),
 		[
@@ -155,7 +172,7 @@ export const ContentPicker = ({
 			disableTypeFilter,
 			showUrl,
 			value,
-			handleChange,
+			handleSelect,
 			labels,
 		],
 	);
@@ -163,7 +180,7 @@ export const ContentPicker = ({
 	return (
 		<EmotionCacheProvider>
 			<QueryClientProvider client={queryClientRef.current}>
-				<Root id={rootId} className={className}>
+				<Root ref={rootRef} id={rootId} className={className}>
 					{showInput ? (
 						variant === 'popover' ? (
 							<ContentPickerPopover {...variantProps} />
@@ -172,6 +189,7 @@ export const ContentPicker = ({
 						)
 					) : null}
 					<SelectedList
+						rootId={rootId}
 						value={value}
 						orderable={effectiveOrderable && value.length > 1}
 						maxItems={maxItems}
