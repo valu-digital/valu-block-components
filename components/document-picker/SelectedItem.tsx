@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import {
+	useEffect,
+	useRef,
+	useState,
+	type CSSProperties,
+	type ReactNode,
+	type RefObject,
+} from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button, Icon, TextControl } from '@wordpress/components';
@@ -17,7 +24,7 @@ import {
 	SelectedTitle,
 } from './styles';
 import { ExtensionBadge } from './badges/ExtensionBadge';
-import { displayTitle, formatFileSize, formatModified } from './utils';
+import { displayTitle, documentName, formatFileSize, formatModified } from './utils';
 import type { DocumentPickerLabels, ResolvedDocumentItem } from './types';
 
 export interface SelectedItemProps {
@@ -29,6 +36,8 @@ export interface SelectedItemProps {
 	showFileSize: boolean;
 	showModifiedDate: boolean;
 	labels: DocumentPickerLabels;
+	/** Id of the remove button, so the list can move focus to it. */
+	removeButtonId: string;
 	onRemove: () => void;
 	onMoveUp?: () => void;
 	onMoveDown?: () => void;
@@ -48,6 +57,7 @@ export const SelectedItem = ({
 	showFileSize,
 	showModifiedDate,
 	labels,
+	removeButtonId,
 	onRemove,
 	onMoveUp,
 	onMoveDown,
@@ -71,28 +81,43 @@ export const SelectedItem = ({
 		labels.missing ?? __('This document is no longer available.', 'valu-block-components');
 
 	const displayName = displayTitle(item);
+	const name = documentName(item);
 
 	const removeLabel = labels.remove
 		? labels.remove
 		: sprintf(
 				/* translators: %s: document title */
 				__('Remove %s', 'valu-block-components'),
-				displayName,
+				name,
 			);
 	const moveUpLabel = labels.moveUp
 		? labels.moveUp
 		: sprintf(
 				/* translators: %s: document title */
 				__('Move %s up', 'valu-block-components'),
-				displayName,
+				name,
 			);
 	const moveDownLabel = labels.moveDown
 		? labels.moveDown
 		: sprintf(
 				/* translators: %s: document title */
 				__('Move %s down', 'valu-block-components'),
-				displayName,
+				name,
 			);
+
+	const moveUpRef = useRef<HTMLButtonElement>(null);
+	const moveDownRef = useRef<HTMLButtonElement>(null);
+
+	// React reorders the list by moving row nodes, and a moved node loses
+	// focus. Put it back on the button that had it.
+	const keepFocus =
+		(move: (() => void) | undefined, button: RefObject<HTMLButtonElement>) => () => {
+			const hadFocus = button.current === button.current?.ownerDocument.activeElement;
+			move?.();
+			if (hadFocus) {
+				requestAnimationFrame(() => button.current?.focus());
+			}
+		};
 
 	const modified = showModifiedDate ? formatModified(item.modified) : '';
 
@@ -214,24 +239,29 @@ export const SelectedItem = ({
 				{orderable ? (
 					<ReorderButtons>
 						<Button
+							ref={moveUpRef}
 							size="small"
 							variant="tertiary"
 							icon={chevronUp}
 							label={moveUpLabel}
-							onClick={onMoveUp}
+							onClick={keepFocus(onMoveUp, moveUpRef)}
 							disabled={index === 0 || !onMoveUp}
+							accessibleWhenDisabled
 						/>
 						<Button
+							ref={moveDownRef}
 							size="small"
 							variant="tertiary"
 							icon={chevronDown}
 							label={moveDownLabel}
-							onClick={onMoveDown}
+							onClick={keepFocus(onMoveDown, moveDownRef)}
 							disabled={index === total - 1 || !onMoveDown}
+							accessibleWhenDisabled
 						/>
 					</ReorderButtons>
 				) : null}
 				<Button
+					id={removeButtonId}
 					size="small"
 					variant="tertiary"
 					icon={closeSmall}

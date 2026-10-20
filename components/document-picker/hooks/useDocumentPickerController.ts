@@ -5,7 +5,7 @@ import { useDocumentSearch } from './useDocumentSearch';
 import { useDebouncedValue } from '../../content-picker/hooks/useDebouncedValue';
 import { useLiveRegion } from '../../content-picker/hooks/useLiveRegion';
 import { useKeyboardNav } from '../../content-picker/hooks/useKeyboardNav';
-import { dedupeAgainst, generateKey, isMaxedOut } from '../utils';
+import { dedupeAgainst, documentName, generateKey, isMaxedOut } from '../utils';
 import type { DocumentItem, DocumentPickerProps } from '../types';
 
 export interface DocumentPickerControllerArgs {
@@ -42,8 +42,6 @@ export interface DocumentPickerController {
 	fetchingMore: boolean;
 	select: (item: DocumentItem) => void;
 	selectMany: (items: DocumentItem[]) => void;
-	remove: (key: string) => void;
-	reorder: (from: number, to: number) => void;
 	replace: (items: DocumentItem[]) => void;
 	maxedOut: boolean;
 	total: number;
@@ -141,7 +139,7 @@ export const useDocumentPickerController = (
 					sprintf(
 						/* translators: %s: document title */
 						__('Selected %s.', 'valu-block-components'),
-						next[0]!.title,
+						documentName(next[0]!),
 					),
 				);
 				onSelectSideEffect?.();
@@ -185,46 +183,6 @@ export const useDocumentPickerController = (
 		[maxedOut, maxItems, selectMany],
 	);
 
-	const remove = useCallback(
-		(key: string) => {
-			const target = value.find((i) => i.key === key);
-			const next = value.filter((i) => i.key !== key);
-			onChange(next);
-			if (target) {
-				announceImmediate(
-					sprintf(
-						/* translators: %s: title of the removed document */
-						__('Removed %s.', 'valu-block-components'),
-						target.title,
-					),
-				);
-			}
-		},
-		[value, onChange, announceImmediate],
-	);
-
-	const reorder = useCallback(
-		(from: number, to: number) => {
-			if (from === to || from < 0 || to < 0 || from >= value.length || to >= value.length) {
-				return;
-			}
-			const next = value.slice();
-			const [moved] = next.splice(from, 1);
-			next.splice(to, 0, moved!);
-			onChange(next);
-			announceImmediate(
-				sprintf(
-					/* translators: 1: title, 2: position, 3: total */
-					__('Moved %1$s to position %2$d of %3$d.', 'valu-block-components'),
-					moved!.title,
-					to + 1,
-					next.length,
-				),
-			);
-		},
-		[value, onChange, announceImmediate],
-	);
-
 	const {
 		highlightedIndex,
 		setHighlightedIndex,
@@ -260,8 +218,6 @@ export const useDocumentPickerController = (
 		fetchingMore: query_.isFetchingNextPage,
 		select,
 		selectMany,
-		remove,
-		reorder,
 		replace,
 		maxedOut,
 		total: query_.data?.pages[0]?.total ?? 0,

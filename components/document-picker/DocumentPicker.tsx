@@ -7,7 +7,8 @@ import { SelectedList } from './SelectedList';
 import { MediaLibraryButton } from './MediaLibraryButton';
 import { EmotionCacheProvider } from '../content-picker/styles/emotionCache';
 import { ActionsRow, Root } from './styles';
-import { DEFAULT_DOCUMENT_MIME_TYPES } from './utils';
+import { focusAfterRender, removeButtonId } from '../content-picker/utils';
+import { DEFAULT_DOCUMENT_MIME_TYPES, isMaxedOut } from './utils';
 import type { DocumentItem, DocumentPickerLabels, DocumentPickerProps } from './types';
 
 const DEFAULT_LABELS: DocumentPickerLabels = {};
@@ -96,6 +97,22 @@ export const DocumentPicker = ({
 	const hideInputForSingleSelect = isSingleSelect && value.length > 0;
 	const showInput = !isFull && !hideInputForSingleSelect;
 
+	const rootRef = useRef<HTMLDivElement | null>(null);
+
+	// A selection that fills the picker removes the search input, and focus
+	// with it. Move focus to the new row instead.
+	const handleSelect = useCallback(
+		(next: DocumentItem[]) => {
+			handleChange(next);
+			const added = next[next.length - 1];
+			const doc = rootRef.current?.ownerDocument;
+			if (added && doc && isMaxedOut(next, maxItems)) {
+				focusAfterRender(doc, removeButtonId(rootId, added.key));
+			}
+		},
+		[handleChange, maxItems, rootId],
+	);
+
 	const variantProps = useMemo(
 		() => ({
 			rootId,
@@ -118,7 +135,7 @@ export const DocumentPicker = ({
 			...(request !== undefined ? { request } : {}),
 			...(renderSuggestion ? { renderSuggestion } : {}),
 			value,
-			onChange: handleChange,
+			onChange: handleSelect,
 			labels,
 		}),
 		[
@@ -142,7 +159,7 @@ export const DocumentPicker = ({
 			request,
 			renderSuggestion,
 			value,
-			handleChange,
+			handleSelect,
 			labels,
 		],
 	);
@@ -150,7 +167,7 @@ export const DocumentPicker = ({
 	return (
 		<EmotionCacheProvider>
 			<QueryClientProvider client={queryClientRef.current}>
-				<Root id={rootId} {...(className !== undefined ? { className } : {})}>
+				<Root ref={rootRef} id={rootId} {...(className !== undefined ? { className } : {})}>
 					{showInput ? (
 						variant === 'popover' ? (
 							<DocumentPickerPopover {...variantProps} />
@@ -187,6 +204,7 @@ export const DocumentPicker = ({
 						</ActionsRow>
 					) : null}
 					<SelectedList
+						rootId={rootId}
 						value={value}
 						orderable={effectiveOrderable && value.length > 1}
 						maxItems={maxItems}
