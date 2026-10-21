@@ -60,9 +60,10 @@ function Edit({ attributes, setAttributes }) {
 - **MIME + extension filter**: REST queries are scoped server-side via
   `mime_type[]`. The `allowedExtensions` prop is an escape hatch for
   documents with non-standard MIME types (e.g. `.dwg`).
-- **Missing-attachment detection**: trashed/deleted attachments render
-  muted with a caution icon — picked items are hydrated from
-  `@wordpress/core-data`.
+- **Missing-attachment detection**: trashed/deleted attachments, and
+  attachments the user may not read, render muted with a caution icon —
+  picked items are hydrated from `@wordpress/core-data` in the REST API's
+  view context.
 - **Accessible**: ARIA 1.2 combobox in the popover variant, `<ul>` +
   `aria-setsize`/`aria-posinset` for the selected list, live-region
   announcements via `@wordpress/a11y`.
@@ -80,7 +81,7 @@ function Edit({ attributes, setAttributes }) {
 | `value`               | `DocumentItem[]`             | —                              | Controlled value.                                                                                                                                                      |
 | `defaultValue`        | `DocumentItem[]`             | `[]`                           | Uncontrolled initial value.                                                                                                                                            |
 | `onChange`            | `(items) => void`            | —                              | Called with the next array.                                                                                                                                            |
-| `maxItems`            | `number`                     | `Infinity`                     | `1` = single-select.                                                                                                                                                   |
+| `maxItems`            | `number`                     | `Infinity`                     | `1` = single-select. A numeric string such as `"20"` from `wp_localize_script()` counts as its number.                                                                 |
 | `orderable`           | `boolean`                    | `maxItems > 1`                 | Enable drag-reorder.                                                                                                                                                   |
 | `placeholder`         | `string`                     | —                              | Input placeholder.                                                                                                                                                     |
 | `allowedMimeTypes`    | `string[]`                   | `DEFAULT_DOCUMENT_MIME_TYPES`  | MIME types for search and Media Library filter.                                                                                                                        |

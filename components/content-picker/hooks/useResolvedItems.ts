@@ -4,6 +4,7 @@ import { store as coreStore } from '@wordpress/core-data';
 
 import type { ContentItem, ContentKind, ContentStatus, ResolvedContentItem } from '../types';
 import { decodeTitle } from '../utils';
+import { selectRecord, type UnavailableReason } from './selectRecord';
 
 interface EntityRecord {
 	id: number;
@@ -11,8 +12,10 @@ interface EntityRecord {
 	title?: { rendered?: string } | string;
 	name?: string;
 	link?: string;
-	featured_media?: number;
 }
+
+// The fields a row shows: posts have a title, terms and users a name.
+const RECORD_QUERY = { context: 'view', _fields: 'id,status,title,name,link' };
 
 const entityKindFor = (kind: ContentKind): 'postType' | 'taxonomy' | 'root' => {
 	if (kind === 'post') return 'postType';
@@ -41,29 +44,21 @@ export const useResolvedItems = (value: ContentItem[]): ResolvedContentItem[] =>
 		return Array.from(map.entries()).map(([key, v]) => ({ key, ...v }));
 	}, [value]);
 
-	// Values are store references, `null` or `undefined`, never objects built
-	// here: useSelect compares the result shallowly, so a fresh wrapper per
-	// item would count as a change on every call.
-	// `undefined` = still resolving, `null` = resolved but not found.
+	// Values are store references, strings or `undefined`, never objects
+	// built here: useSelect compares the result shallowly, so a fresh wrapper
+	// per item would count as a change on every call.
 	const records = useSelect(
 		(select) => {
 			const core = select(coreStore);
-			const out: Record<string, EntityRecord | null | undefined> = {};
+			const out: Record<string, EntityRecord | UnavailableReason | undefined> = {};
 			for (const item of value) {
-				const kindKey = entityKindFor(item.kind);
-				const nameKey = entityNameFor(item.kind, item.type);
-				const record = core.getEntityRecord(kindKey, nameKey, item.id) as
-					| EntityRecord
-					| null
-					| undefined;
-				const resolved = core.hasFinishedResolution('getEntityRecord', [
-					kindKey,
-					nameKey,
+				out[`${item.kind}:${item.type}:${item.id}`] = selectRecord<EntityRecord>(
+					core,
+					entityKindFor(item.kind),
+					entityNameFor(item.kind, item.type),
 					item.id,
-				]);
-				out[`${item.kind}:${item.type}:${item.id}`] = resolved
-					? (record ?? null)
-					: undefined;
+					RECORD_QUERY,
+				);
 			}
 			return out;
 		},
@@ -78,8 +73,8 @@ export const useResolvedItems = (value: ContentItem[]): ResolvedContentItem[] =>
 				if (record === undefined) {
 					return item;
 				}
-				if (!record) {
-					return { ...item, missing: 'deleted' };
+				if (record === 'deleted' || record === 'restricted') {
+					return { ...item, missing: record };
 				}
 				if (record.status === 'trash') {
 					return { ...item, missing: 'trash', status: 'trash' };

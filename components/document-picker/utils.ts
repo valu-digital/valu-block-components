@@ -26,6 +26,9 @@ export const DEFAULT_DOCUMENT_MIME_TYPES: readonly string[] = [
 	'application/vnd.openxmlformats-officedocument.presentationml.presentation',
 ] as const;
 
+/** The `/wp/v2/media` fields `mapMediaToDocumentItem` reads. */
+export const DOCUMENT_FIELDS = 'id,title,source_url,mime_type,media_details,modified,date';
+
 const decodeRendered = (raw: unknown): string => {
 	if (typeof raw === 'string') return decodeEntities(raw);
 	if (raw && typeof raw === 'object' && 'rendered' in raw) {
@@ -142,6 +145,10 @@ export const documentName = (item: ResolvedDocumentItem): string => {
 	if (item.missing === 'deleted') {
 		/* translators: names a document that no longer exists, in "Remove %s" etc. */
 		return __('unavailable document', 'valu-block-components');
+	}
+	if (item.missing === 'restricted') {
+		/* translators: names a document the user isn't allowed to view, in "Remove %s" etc. */
+		return __("document you can't view", 'valu-block-components');
 	}
 	/* translators: names a document without a title, in "Remove %s" etc. */
 	return __('untitled document', 'valu-block-components');

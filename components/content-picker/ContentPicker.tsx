@@ -6,7 +6,8 @@ import { ContentPickerInline } from './ContentPickerInline';
 import { SelectedList } from './SelectedList';
 import { EmotionCacheProvider } from './styles/emotionCache';
 import { Root } from './styles';
-import { focusAfterRender, isMaxedOut, removeButtonId } from './utils';
+import { useFocusAddedRow } from './hooks/useFocusAddedRow';
+import { isMaxedOut, toItemLimit } from './utils';
 import type {
 	ContentItem,
 	ContentPickerLabels,
@@ -58,7 +59,7 @@ export const ContentPicker = ({
 	value: controlledValue,
 	defaultValue,
 	onChange,
-	maxItems = Infinity,
+	maxItems: maxItemsProp,
 	orderable,
 	placeholder,
 	perPage,
@@ -86,6 +87,7 @@ export const ContentPicker = ({
 	const [uncontrolled, setUncontrolled] = useState<ContentItem[]>(defaultValue ?? []);
 	const isControlled = controlledValue !== undefined;
 	const value = isControlled ? controlledValue : uncontrolled;
+	const maxItems = toItemLimit(maxItemsProp);
 
 	const handleChange = useCallback(
 		(next: ContentItem[]) => {
@@ -107,19 +109,19 @@ export const ContentPicker = ({
 	const showInput = !(Number.isFinite(maxItems) && value.length >= maxItems);
 
 	const rootRef = useRef<HTMLDivElement | null>(null);
+	const focusAddedRow = useFocusAddedRow(rootRef, rootId, value);
 
 	// A selection that fills the picker removes the search input, and focus
 	// with it. Move focus to the new row instead.
 	const handleSelect = useCallback(
 		(next: ContentItem[]) => {
-			handleChange(next);
 			const added = next[next.length - 1];
-			const doc = rootRef.current?.ownerDocument;
-			if (added && doc && isMaxedOut(next, maxItems)) {
-				focusAfterRender(doc, removeButtonId(rootId, added.key));
+			if (added && isMaxedOut(next, maxItems)) {
+				focusAddedRow(added);
 			}
+			handleChange(next);
 		},
-		[handleChange, maxItems, rootId],
+		[handleChange, maxItems, focusAddedRow],
 	);
 
 	const variantProps = useMemo(

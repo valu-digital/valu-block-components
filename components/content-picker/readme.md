@@ -52,11 +52,15 @@ interaction:
   drag-reorder via `@dnd-kit`, live-region announcements via
   `@wordpress/a11y`.
 - **Deletion / trash detection** — picked items are hydrated from
-  `@wordpress/core-data`; deleted or trashed items render in a muted
-  state with a clear remove affordance.
+  `@wordpress/core-data` in the REST API's view context, so a user sees
+  the items they can read, also ones they can't edit. Deleted or trashed
+  items, and items the user may not read (e.g. a draft by another user),
+  render in a muted state with a clear remove affordance.
 - **Registered type names** — the type filter, group headings, type
-  hints and badges use the labels a post type or taxonomy was registered
-  with, which WordPress translates to the user's locale.
+  hints and badges use the plural name a post type or taxonomy was
+  registered with, which WordPress translates to the user's locale. The
+  singular name is only in the edit context, which hides it from users
+  who can't edit the type.
 - **Controlled or uncontrolled** — pass `value` + `onChange`, or use
   `defaultValue`.
 
@@ -73,7 +77,7 @@ interaction:
 | `value` | `ContentItem[]` | — | Controlled value. |
 | `defaultValue` | `ContentItem[]` | `[]` | Uncontrolled initial value. |
 | `onChange` | `(items) => void` | — | Called with full next array. |
-| `maxItems` | `number` | `Infinity` | `1` = single-select. |
+| `maxItems` | `number` | `Infinity` | `1` = single-select. A numeric string such as `"20"` from `wp_localize_script()` counts as its number. |
 | `orderable` | `boolean` | `maxItems > 1` | Enable drag-reorder. |
 | `placeholder` | `string` | — | Input placeholder. |
 | `perPage` | `number` | `10` (popover) / `20` (inline) | Items per page. |
@@ -84,7 +88,7 @@ interaction:
 | `groupByType` | `boolean` | `types.length > 1` | Group results by type heading. |
 | `disableTypeFilter` | `boolean` | `false` | Hide the `All / Post / Page / …` chip row shown under the search when `types.length > 1`. |
 | `showUrl` | `boolean` | `true` | Show each suggestion's slug URL beneath its title in the suggestion list. |
-| `showTypeBadge` | `boolean` | `types.length > 1` | Show a `POST` / `PAGE` / `CATEGORY` pill on each selected row. |
+| `showTypeBadge` | `boolean` | `types.length > 1` | Show a `POSTS` / `PAGES` / `CATEGORIES` pill on each selected row. |
 | `icons` | `Record<string, IconType>` | `{ user: people }` | Icon overrides keyed by post-type / taxonomy / `'user'` slug. Accepts anything `<Icon>` accepts (WP icons, JSX, custom components). By default only users show an icon; everything else is icon-less unless it has a thumbnail or a consumer override. |
 | `filter` | `(items, ctx) => items` | — | Final filter over normalized suggestions. |
 | `request` | `(path, ctx) => path` | — | Rewrite the REST path before fetching. Post searches send `_fields=id,title,url,type,subtype`; widen it here if you need more fields in `raw`. |

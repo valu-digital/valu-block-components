@@ -174,7 +174,7 @@ export const SuggestionList = ({
 								optionId={optionId}
 								highlighted={index === highlightedIndex}
 								selected={selectedKeys.has(item.key)}
-								typeHint={showTypeHint ? typeLabels[item.type].singular : null}
+								typeHint={showTypeHint ? typeLabels[item.type] : null}
 								showUrl={showUrl}
 								icons={icons}
 								onHover={() => onHover(index)}
@@ -191,7 +191,7 @@ export const SuggestionList = ({
 							<GroupHeading id={headingId}>
 								{renderGroupHeading
 									? renderGroupHeading(type, items)
-									: typeLabels[type].plural}
+									: typeLabels[type]}
 							</GroupHeading>
 							{optionNodes}
 						</div>

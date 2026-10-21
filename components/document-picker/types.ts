@@ -2,8 +2,11 @@ import type { ReactNode } from 'react';
 
 export type DocumentPickerVariant = 'popover' | 'inline';
 
-/** Reason a picked document can't be displayed normally. */
-export type MissingReason = 'deleted';
+/**
+ * Reason a picked document can't be displayed normally. `restricted`: the
+ * file exists, but the user may not read it.
+ */
+export type MissingReason = 'deleted' | 'restricted';
 
 /**
  * A document item in the picker. `key` is a stable client-side uuid (use
@@ -54,6 +57,7 @@ export interface DocumentPickerLabels {
 	moveDown?: string;
 	dragHandle?: string;
 	missing?: string;
+	restricted?: string;
 	openLink?: string;
 	extensionBadge?: string;
 	itemLabel?: string;
@@ -95,7 +99,11 @@ export interface DocumentPickerProps {
 	/** Called with the next array whenever the selection changes. */
 	onChange?: (items: DocumentItem[]) => void;
 
-	/** Maximum items the user can pick. `1` = single-select. @default Infinity */
+	/**
+	 * Maximum items the user can pick. `1` = single-select. A numeric string
+	 * from untyped code, e.g. a value from `wp_localize_script()`, counts as
+	 * its number. @default Infinity
+	 */
 	maxItems?: number;
 
 	/** Allow drag-to-reorder. @default true when maxItems > 1 */

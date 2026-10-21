@@ -76,9 +76,12 @@ export const SelectedItem = ({
 		opacity: isDragging ? 0 : 1,
 	};
 
-	const isMissing = item.missing === 'deleted';
+	const isMissing = item.missing !== undefined;
 	const missingLabel =
-		labels.missing ?? __('This document is no longer available.', 'valu-block-components');
+		item.missing === 'restricted'
+			? (labels.restricted ?? __("You can't view this document.", 'valu-block-components'))
+			: (labels.missing ??
+				__('This document is no longer available.', 'valu-block-components'));
 
 	const displayName = displayTitle(item);
 	const name = documentName(item);

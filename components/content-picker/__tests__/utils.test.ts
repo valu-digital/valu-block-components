@@ -9,6 +9,7 @@ import {
 	humanizeType,
 	isMaxedOut,
 	toDisplayUrl,
+	toItemLimit,
 } from '../utils';
 import type { ContentItem } from '../types';
 
@@ -84,6 +85,26 @@ describe('isMaxedOut', () => {
 	});
 });
 
+describe('toItemLimit', () => {
+	it('keeps numbers as they are', () => {
+		expect(toItemLimit(1)).toBe(1);
+		expect(toItemLimit(20)).toBe(20);
+		expect(toItemLimit(Infinity)).toBe(Infinity);
+	});
+
+	it('reads a numeric string as its number', () => {
+		expect(toItemLimit('20')).toBe(20);
+		expect(toItemLimit('1')).toBe(1);
+	});
+
+	it('means no limit for anything else', () => {
+		expect(toItemLimit(undefined)).toBe(Infinity);
+		expect(toItemLimit('')).toBe(Infinity);
+		expect(toItemLimit('many')).toBe(Infinity);
+		expect(toItemLimit(null)).toBe(Infinity);
+	});
+});
+
 describe('humanizeStatus', () => {
 	it('returns null for publish or undefined', () => {
 		expect(humanizeStatus(undefined)).toBeNull();
@@ -98,8 +119,8 @@ describe('humanizeStatus', () => {
 
 describe('humanizeType', () => {
 	it('handles known post types', () => {
-		expect(humanizeType('post', 'post')).toBe('Post');
-		expect(humanizeType('page', 'post')).toBe('Page');
+		expect(humanizeType('post', 'post')).toBe('Posts');
+		expect(humanizeType('page', 'post')).toBe('Pages');
 	});
 
 	it('title-cases custom types', () => {
@@ -107,8 +128,8 @@ describe('humanizeType', () => {
 		expect(humanizeType('case-study', 'post')).toBe('Case Study');
 	});
 
-	it('returns User for user kind regardless of type', () => {
-		expect(humanizeType('user', 'user')).toBe('User');
+	it('returns Users for user kind regardless of type', () => {
+		expect(humanizeType('user', 'user')).toBe('Users');
 	});
 });
 
