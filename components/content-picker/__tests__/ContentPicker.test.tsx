@@ -41,16 +41,18 @@ describe('ContentPicker', () => {
 		await waitFor(() => expect(document.activeElement).toBe(remove));
 	});
 
-	it('moves focus to the new row when the parent re-keys the items', async () => {
+	it('moves focus to the new row when the parent rebuilds the items', async () => {
 		const titles: Record<number, string> = { 3: 'Third', 7: 'Seventh' };
-		// Stores only ids, so the items it passes back have keys of its own.
+		// Stores only ids, like a Query Loop extension: the items it passes
+		// back have keys of its own, and the query's post type until it has
+		// looked up the real one.
 		const Parent = () => {
 			const [ids, setIds] = useState([3]);
 			return (
 				<ContentPicker
-					label="Pages"
+					label="Content"
 					variant="inline"
-					types={['page']}
+					types={['post', 'page']}
 					maxItems={2}
 					fetchOnOpen
 					excludeCurrentPost={false}
@@ -58,7 +60,7 @@ describe('ContentPicker', () => {
 						key: String(id),
 						id,
 						kind: 'post' as const,
-						type: 'page',
+						type: 'post',
 						title: titles[id],
 					}))}
 					onChange={(next) => setIds(next.map((item) => item.id))}

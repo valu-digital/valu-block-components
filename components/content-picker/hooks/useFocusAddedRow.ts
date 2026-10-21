@@ -6,11 +6,12 @@ interface Row {
 	key: string;
 	id: number;
 	kind?: string;
-	type?: string;
 }
 
-const isSameEntity = (a: Row, b: Row): boolean =>
-	a.id === b.id && a.kind === b.kind && a.type === b.type;
+// Not by type: WordPress ids are unique across post types, and across
+// taxonomies, and a parent may not know the type yet. One that stores only
+// ids may resolve the types later and use a default until then.
+const isSameEntity = (a: Row, b: Row): boolean => a.id === b.id && a.kind === b.kind;
 
 /**
  * Focus the remove button of an added row once the row renders. Returns the
