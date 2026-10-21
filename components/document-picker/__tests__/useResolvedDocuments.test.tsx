@@ -57,4 +57,23 @@ describe('useResolvedDocuments', () => {
 
 		expect(result.current[0]).toMatchObject({ id: 3, missing: 'deleted' });
 	});
+
+	it('flags a document as deleted when the REST API answers 404', () => {
+		const { fail, wrapper } = createCoreRegistry();
+		fail('postType', 'attachment', 4, 404);
+
+		const { result } = renderHook(() => useResolvedDocuments([doc(4)]), { wrapper });
+
+		expect(result.current[0]).toMatchObject({ id: 4, missing: 'deleted' });
+	});
+
+	it('flags a document the user may not read as restricted', () => {
+		const { fail, wrapper } = createCoreRegistry();
+		fail('postType', 'attachment', 5, 403);
+
+		const { result } = renderHook(() => useResolvedDocuments([doc(5)]), { wrapper });
+
+		expect(result.current[0]).toMatchObject({ id: 5, missing: 'restricted' });
+		expect(useSelectWarnings()).toEqual([]);
+	});
 });

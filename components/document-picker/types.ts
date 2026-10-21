@@ -2,8 +2,11 @@ import type { ReactNode } from 'react';
 
 export type DocumentPickerVariant = 'popover' | 'inline';
 
-/** Reason a picked document can't be displayed normally. */
-export type MissingReason = 'deleted';
+/**
+ * Reason a picked document can't be displayed normally. `restricted`: the
+ * file exists, but the user may not read it.
+ */
+export type MissingReason = 'deleted' | 'restricted';
 
 /**
  * A document item in the picker. `key` is a stable client-side uuid (use
@@ -54,6 +57,7 @@ export interface DocumentPickerLabels {
 	moveDown?: string;
 	dragHandle?: string;
 	missing?: string;
+	restricted?: string;
 	openLink?: string;
 	extensionBadge?: string;
 	itemLabel?: string;

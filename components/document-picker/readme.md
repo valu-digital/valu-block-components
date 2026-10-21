@@ -60,9 +60,10 @@ function Edit({ attributes, setAttributes }) {
 - **MIME + extension filter**: REST queries are scoped server-side via
   `mime_type[]`. The `allowedExtensions` prop is an escape hatch for
   documents with non-standard MIME types (e.g. `.dwg`).
-- **Missing-attachment detection**: trashed/deleted attachments render
-  muted with a caution icon — picked items are hydrated from
-  `@wordpress/core-data`.
+- **Missing-attachment detection**: trashed/deleted attachments, and
+  attachments the user may not read, render muted with a caution icon —
+  picked items are hydrated from `@wordpress/core-data` in the REST API's
+  view context.
 - **Accessible**: ARIA 1.2 combobox in the popover variant, `<ul>` +
   `aria-setsize`/`aria-posinset` for the selected list, live-region
   announcements via `@wordpress/a11y`.

@@ -44,15 +44,15 @@ export const groupByType = (items: ContentItem[]): Array<[string, ContentItem[]]
 };
 
 /**
- * A name for a type without its registered labels. Use `useTypeLabels`,
- * which only falls back to this while the labels load.
+ * A plural name for a type without its registered labels. Use
+ * `useTypeLabels`, which only falls back to this while the labels load.
  */
 export const humanizeType = (type: string, kind: ContentKind): string => {
-	if (kind === 'user') return __('User', 'valu-block-components');
+	if (kind === 'user') return __('Users', 'valu-block-components');
 	// Built at call time, so `__()` sees the locale data loaded by then.
 	const postTypeLabels: Record<string, string> = {
-		post: __('Post', 'valu-block-components'),
-		page: __('Page', 'valu-block-components'),
+		post: __('Posts', 'valu-block-components'),
+		page: __('Pages', 'valu-block-components'),
 		attachment: __('Media', 'valu-block-components'),
 	};
 	if (postTypeLabels[type]) return postTypeLabels[type];
@@ -102,6 +102,10 @@ export const itemName = (item: ResolvedContentItem): string => {
 	if (item.missing === 'trash') {
 		/* translators: names a trashed item, in "Remove %s" etc. */
 		return __('item in trash', 'valu-block-components');
+	}
+	if (item.missing === 'restricted') {
+		/* translators: names an item the user isn't allowed to view, in "Remove %s" etc. */
+		return __("item you can't view", 'valu-block-components');
 	}
 	/* translators: names an item without a title, in "Remove %s" etc. */
 	return __('untitled item', 'valu-block-components');

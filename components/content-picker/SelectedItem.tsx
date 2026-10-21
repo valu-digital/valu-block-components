@@ -26,6 +26,7 @@ import { itemName, resolveItemIcon } from './utils';
 import type {
 	ContentPickerIconMap,
 	ContentPickerLabels,
+	MissingReason,
 	ResolvedContentItem,
 } from './types';
 
@@ -71,11 +72,13 @@ export const SelectedItem = ({
 	};
 
 	const isMissing = item.missing === 'deleted';
-	const isTrash = item.missing === 'trash';
-	const missingLabel =
-		labels.missing ?? __('This item is no longer available.', 'valu-block-components');
-	const trashLabel =
-		labels.statusTrash ?? __('This item is in the trash.', 'valu-block-components');
+	const isUnavailable = item.missing !== undefined;
+	const unavailableLabels: Record<MissingReason, string> = {
+		deleted:
+			labels.missing ?? __('This item is no longer available.', 'valu-block-components'),
+		trash: labels.statusTrash ?? __('This item is in the trash.', 'valu-block-components'),
+		restricted: labels.restricted ?? __("You can't view this item.", 'valu-block-components'),
+	};
 
 	const name = itemName(item);
 	const removeLabel = labels.remove
@@ -115,16 +118,16 @@ export const SelectedItem = ({
 
 	const hasAbnormalStatus = item.status && item.status !== 'publish';
 	const resolvedIcon = resolveItemIcon(item, icons);
-	const hasThumbImage = Boolean(item.thumbnailUrl) && !isMissing && !isTrash;
+	const hasThumbImage = Boolean(item.thumbnailUrl) && !isUnavailable;
 	const isAvatar = item.kind === 'user' && hasThumbImage;
-	const hasVisual = isMissing || isTrash || hasThumbImage || Boolean(resolvedIcon);
+	const hasVisual = isUnavailable || hasThumbImage || Boolean(resolvedIcon);
 
 	return (
 		<SelectedRow
 			ref={setNodeRef}
 			style={style}
 			dragging={isDragging}
-			missing={isMissing || isTrash}
+			missing={isUnavailable}
 			aria-setsize={total}
 			aria-posinset={index + 1}
 		>
@@ -142,9 +145,9 @@ export const SelectedItem = ({
 				<Thumb
 					hasImage={hasThumbImage && !isAvatar}
 					avatar={isAvatar}
-					missing={isMissing || isTrash}
+					missing={isUnavailable}
 				>
-					{isMissing || isTrash ? (
+					{isUnavailable ? (
 						<Icon icon={caution} size={22} />
 					) : hasThumbImage ? (
 						<img src={item.thumbnailUrl} alt="" loading="lazy" />
@@ -157,8 +160,8 @@ export const SelectedItem = ({
 				render(item)
 			) : (
 				<ItemBody>
-					<SelectedTitle muted={isMissing || isTrash} title={item.title}>
-						{isMissing ? missingLabel : isTrash ? trashLabel : item.title}
+					<SelectedTitle muted={isUnavailable} title={item.title}>
+						{item.missing ? unavailableLabels[item.missing] : item.title}
 					</SelectedTitle>
 				</ItemBody>
 			)}

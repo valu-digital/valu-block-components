@@ -98,8 +98,8 @@ describe('humanizeStatus', () => {
 
 describe('humanizeType', () => {
 	it('handles known post types', () => {
-		expect(humanizeType('post', 'post')).toBe('Post');
-		expect(humanizeType('page', 'post')).toBe('Page');
+		expect(humanizeType('post', 'post')).toBe('Posts');
+		expect(humanizeType('page', 'post')).toBe('Pages');
 	});
 
 	it('title-cases custom types', () => {
@@ -107,8 +107,8 @@ describe('humanizeType', () => {
 		expect(humanizeType('case-study', 'post')).toBe('Case Study');
 	});
 
-	it('returns User for user kind regardless of type', () => {
-		expect(humanizeType('user', 'user')).toBe('User');
+	it('returns Users for user kind regardless of type', () => {
+		expect(humanizeType('user', 'user')).toBe('Users');
 	});
 });
 

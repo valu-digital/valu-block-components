@@ -39,8 +39,11 @@ export type ContentStatus =
 
 export type ContentPickerVariant = 'popover' | 'inline';
 
-/** Reason a picked item can't be displayed normally. */
-export type MissingReason = 'deleted' | 'trash';
+/**
+ * Reason a picked item can't be displayed normally. `restricted`: the item
+ * exists, but the user may not read it, e.g. a draft by another user.
+ */
+export type MissingReason = 'deleted' | 'trash' | 'restricted';
 
 /**
  * The shape of a picked / suggested content item.
@@ -86,6 +89,7 @@ export interface ContentPickerLabels {
 	statusFuture?: string;
 	statusTrash?: string;
 	missing?: string;
+	restricted?: string;
 	change?: string;
 	openSuggestions?: string;
 	closeSuggestions?: string;

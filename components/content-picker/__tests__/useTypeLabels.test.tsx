@@ -9,26 +9,35 @@ vi.mock('@wordpress/core-data', () => import('../../../test-utils/fakeCoreData')
 describe('useTypeLabels', () => {
 	const useSelectWarnings = collectUseSelectWarnings();
 
-	it('uses the registered labels of a post type', () => {
+	it('uses the registered name of a post type', () => {
 		const { resolve, wrapper } = createCoreRegistry();
-		resolve('root', 'postType', 'page', { labels: { name: 'Sivut', singular_name: 'Sivu' } });
+		resolve('root', 'postType', 'page', { name: 'Sivut' });
 		const types = ['page'];
 
 		const { result } = renderHook(() => useTypeLabels(types, 'post'), { wrapper });
 
-		expect(result.current.page).toEqual({ singular: 'Sivu', plural: 'Sivut' });
+		expect(result.current.page).toBe('Sivut');
 		expect(useSelectWarnings()).toEqual([]);
 	});
 
-	it('uses the registered labels of a taxonomy', () => {
+	it('uses the registered name of a taxonomy', () => {
 		const { resolve, wrapper } = createCoreRegistry();
-		resolve('root', 'taxonomy', 'post_tag', {
-			labels: { name: 'Avainsanat', singular_name: 'Avainsana' },
-		});
+		resolve('root', 'taxonomy', 'post_tag', { name: 'Avainsanat' });
 
 		const { result } = renderHook(() => useTypeLabel('post_tag', 'term'), { wrapper });
 
-		expect(result.current).toEqual({ singular: 'Avainsana', plural: 'Avainsanat' });
+		expect(result.current).toBe('Avainsanat');
+	});
+
+	it('reads the name in the view context', () => {
+		const { resolve, wrapper } = createCoreRegistry();
+		// The edit context answers 403 for types the user can't edit.
+		resolve('root', 'postType', 'contact', { name: 'Edit only' }, 'edit');
+		resolve('root', 'postType', 'contact', { name: 'Yhteystiedot' });
+
+		const { result } = renderHook(() => useTypeLabel('contact', 'post'), { wrapper });
+
+		expect(result.current).toBe('Yhteystiedot');
 	});
 
 	it('falls back to a name from the slug while the labels load', () => {
@@ -37,17 +46,17 @@ describe('useTypeLabels', () => {
 
 		const { result } = renderHook(() => useTypeLabels(types, 'post'), { wrapper });
 
-		expect(result.current.case_study).toEqual({ singular: 'Case Study', plural: 'Case Study' });
+		expect(result.current.case_study).toBe('Case Study');
 		expect(useSelectWarnings()).toEqual([]);
 	});
 
 	it('falls back when the type can not be read', () => {
-		const { resolve, wrapper } = createCoreRegistry();
-		resolve('root', 'postType', 'secret');
+		const { fail, wrapper } = createCoreRegistry();
+		fail('root', 'postType', 'secret', 404);
 
 		const { result } = renderHook(() => useTypeLabel('secret', 'post'), { wrapper });
 
-		expect(result.current).toEqual({ singular: 'Secret', plural: 'Secret' });
+		expect(result.current).toBe('Secret');
 	});
 
 	it('names users without a lookup', () => {
@@ -55,6 +64,6 @@ describe('useTypeLabels', () => {
 
 		const { result } = renderHook(() => useTypeLabel('user', 'user'), { wrapper });
 
-		expect(result.current).toEqual({ singular: 'User', plural: 'User' });
+		expect(result.current).toBe('Users');
 	});
 });

@@ -80,7 +80,7 @@ export const TypeFilter = ({ types, kind, active, onChange, allLabel }: TypeFilt
 					onClick={() => onChange(active === type ? null : type)}
 					onMouseDown={(e) => e.preventDefault()}
 				>
-					{typeLabels[type].plural}
+					{typeLabels[type]}
 				</Chip>
 			))}
 		</Row>

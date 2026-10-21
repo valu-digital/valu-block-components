@@ -2,7 +2,7 @@ import apiFetch from '@wordpress/api-fetch';
 import { addQueryArgs } from '@wordpress/url';
 
 import type { DocumentItem, RequestContext } from '../types';
-import { mapMediaToDocumentItem, matchesAllowed } from '../utils';
+import { DOCUMENT_FIELDS, mapMediaToDocumentItem, matchesAllowed } from '../utils';
 
 export interface FetchDocumentsArgs {
 	query: string;
@@ -25,15 +25,7 @@ const buildPath = (args: FetchDocumentsArgs): string => {
 	const params: Record<string, string | number> = {
 		per_page: args.perPage,
 		page: args.page,
-		_fields: [
-			'id',
-			'title',
-			'source_url',
-			'mime_type',
-			'media_details',
-			'modified',
-			'date',
-		].join(','),
+		_fields: DOCUMENT_FIELDS,
 		order: 'desc',
 	};
 	// `search` and `orderby=relevance` only make sense together — WP rejects

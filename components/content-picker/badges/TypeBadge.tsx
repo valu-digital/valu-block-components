@@ -29,5 +29,5 @@ export interface TypeBadgeProps {
 
 export const TypeBadge = ({ type, kind, label }: TypeBadgeProps) => {
 	const typeLabel = useTypeLabel(type, kind);
-	return <Pill>{label ?? typeLabel.singular}</Pill>;
+	return <Pill>{label ?? typeLabel}</Pill>;
 };
