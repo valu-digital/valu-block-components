@@ -9,6 +9,7 @@ import {
 	humanizeType,
 	isMaxedOut,
 	toDisplayUrl,
+	toItemLimit,
 } from '../utils';
 import type { ContentItem } from '../types';
 
@@ -81,6 +82,26 @@ describe('isMaxedOut', () => {
 	it('returns true when value length reaches max', () => {
 		expect(isMaxedOut([item()], 1)).toBe(true);
 		expect(isMaxedOut([], 1)).toBe(false);
+	});
+});
+
+describe('toItemLimit', () => {
+	it('keeps numbers as they are', () => {
+		expect(toItemLimit(1)).toBe(1);
+		expect(toItemLimit(20)).toBe(20);
+		expect(toItemLimit(Infinity)).toBe(Infinity);
+	});
+
+	it('reads a numeric string as its number', () => {
+		expect(toItemLimit('20')).toBe(20);
+		expect(toItemLimit('1')).toBe(1);
+	});
+
+	it('means no limit for anything else', () => {
+		expect(toItemLimit(undefined)).toBe(Infinity);
+		expect(toItemLimit('')).toBe(Infinity);
+		expect(toItemLimit('many')).toBe(Infinity);
+		expect(toItemLimit(null)).toBe(Infinity);
 	});
 });
 

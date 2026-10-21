@@ -114,6 +114,17 @@ export const itemName = (item: ResolvedContentItem): string => {
 export const isMaxedOut = (value: ContentItem[], maxItems: number): boolean =>
 	Number.isFinite(maxItems) && value.length >= maxItems;
 
+/**
+ * `maxItems` as a number. A numeric string counts as its number: values
+ * passed from PHP with `wp_localize_script()` arrive as strings, and code
+ * moving from 10up's ContentPicker passes them on. Anything else means no
+ * limit.
+ */
+export const toItemLimit = (maxItems: unknown): number => {
+	const limit = typeof maxItems === 'string' ? Number.parseInt(maxItems, 10) : maxItems;
+	return typeof limit === 'number' && !Number.isNaN(limit) ? limit : Infinity;
+};
+
 /** Filter out items already present in `value` by entity id. */
 export const dedupeAgainst = <T extends { id: number }>(
 	items: T[],

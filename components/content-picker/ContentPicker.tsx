@@ -7,7 +7,7 @@ import { SelectedList } from './SelectedList';
 import { EmotionCacheProvider } from './styles/emotionCache';
 import { Root } from './styles';
 import { useFocusAddedRow } from './hooks/useFocusAddedRow';
-import { isMaxedOut } from './utils';
+import { isMaxedOut, toItemLimit } from './utils';
 import type {
 	ContentItem,
 	ContentPickerLabels,
@@ -59,7 +59,7 @@ export const ContentPicker = ({
 	value: controlledValue,
 	defaultValue,
 	onChange,
-	maxItems = Infinity,
+	maxItems: maxItemsProp,
 	orderable,
 	placeholder,
 	perPage,
@@ -87,6 +87,7 @@ export const ContentPicker = ({
 	const [uncontrolled, setUncontrolled] = useState<ContentItem[]>(defaultValue ?? []);
 	const isControlled = controlledValue !== undefined;
 	const value = isControlled ? controlledValue : uncontrolled;
+	const maxItems = toItemLimit(maxItemsProp);
 
 	const handleChange = useCallback(
 		(next: ContentItem[]) => {

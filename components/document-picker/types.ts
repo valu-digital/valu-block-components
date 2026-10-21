@@ -99,7 +99,11 @@ export interface DocumentPickerProps {
 	/** Called with the next array whenever the selection changes. */
 	onChange?: (items: DocumentItem[]) => void;
 
-	/** Maximum items the user can pick. `1` = single-select. @default Infinity */
+	/**
+	 * Maximum items the user can pick. `1` = single-select. A numeric string
+	 * from untyped code, e.g. a value from `wp_localize_script()`, counts as
+	 * its number. @default Infinity
+	 */
 	maxItems?: number;
 
 	/** Allow drag-to-reorder. @default true when maxItems > 1 */

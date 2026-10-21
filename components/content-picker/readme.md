@@ -77,7 +77,7 @@ interaction:
 | `value` | `ContentItem[]` | — | Controlled value. |
 | `defaultValue` | `ContentItem[]` | `[]` | Uncontrolled initial value. |
 | `onChange` | `(items) => void` | — | Called with full next array. |
-| `maxItems` | `number` | `Infinity` | `1` = single-select. |
+| `maxItems` | `number` | `Infinity` | `1` = single-select. A numeric string such as `"20"` from `wp_localize_script()` counts as its number. |
 | `orderable` | `boolean` | `maxItems > 1` | Enable drag-reorder. |
 | `placeholder` | `string` | — | Input placeholder. |
 | `perPage` | `number` | `10` (popover) / `20` (inline) | Items per page. |

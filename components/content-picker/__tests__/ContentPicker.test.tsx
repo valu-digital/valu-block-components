@@ -41,6 +41,32 @@ describe('ContentPicker', () => {
 		await waitFor(() => expect(document.activeElement).toBe(remove));
 	});
 
+	it('limits the items to a maxItems given as a numeric string', async () => {
+		const { wrapper } = createCoreRegistry();
+		render(
+			<ContentPicker
+				label="Pages"
+				variant="inline"
+				types={['page']}
+				// As passed on from PHP by `wp_localize_script()`.
+				maxItems={'2' as unknown as number}
+				defaultValue={[{ key: 'third', id: 3, kind: 'post', type: 'page', title: 'Third' }]}
+				fetchOnOpen
+				excludeCurrentPost={false}
+			/>,
+			{ wrapper },
+		);
+
+		await screen.findByRole('option', { name: /Seventh/ });
+		const input = screen.getByRole('combobox');
+		input.focus();
+		fireEvent.keyDown(input, { key: 'ArrowDown' });
+		fireEvent.keyDown(input, { key: 'Enter' });
+
+		await screen.findByRole('button', { name: 'Remove Seventh' });
+		expect(screen.queryByRole('combobox')).toBeNull();
+	});
+
 	it('moves focus to the new row when the parent rebuilds the items', async () => {
 		const titles: Record<number, string> = { 3: 'Third', 7: 'Seventh' };
 		// Stores only ids, like a Query Loop extension: the items it passes

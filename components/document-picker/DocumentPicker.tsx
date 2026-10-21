@@ -8,6 +8,7 @@ import { MediaLibraryButton } from './MediaLibraryButton';
 import { EmotionCacheProvider } from '../content-picker/styles/emotionCache';
 import { ActionsRow, Root } from './styles';
 import { useFocusAddedRow } from '../content-picker/hooks/useFocusAddedRow';
+import { toItemLimit } from '../content-picker/utils';
 import { DEFAULT_DOCUMENT_MIME_TYPES, isMaxedOut } from './utils';
 import type { DocumentItem, DocumentPickerLabels, DocumentPickerProps } from './types';
 
@@ -46,7 +47,7 @@ export const DocumentPicker = ({
 	value: controlledValue,
 	defaultValue,
 	onChange,
-	maxItems = Infinity,
+	maxItems: maxItemsProp,
 	orderable,
 	placeholder,
 	allowedMimeTypes,
@@ -74,6 +75,7 @@ export const DocumentPicker = ({
 	const [uncontrolled, setUncontrolled] = useState<DocumentItem[]>(defaultValue ?? []);
 	const isControlled = controlledValue !== undefined;
 	const value = isControlled ? controlledValue : uncontrolled;
+	const maxItems = toItemLimit(maxItemsProp);
 
 	const handleChange = useCallback(
 		(next: DocumentItem[]) => {
