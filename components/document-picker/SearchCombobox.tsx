@@ -77,12 +77,16 @@ export const SearchCombobox = forwardRef<HTMLInputElement, SearchComboboxProps>(
 						aria-label={hideLabelFromVision ? label : undefined}
 						value={value}
 						placeholder={
-							placeholder ?? labels.input ?? __('Search documents', 'valu-block-components')
+							placeholder ??
+							labels.input ??
+							__('Search documents', 'valu-block-components')
 						}
 						disabled={disabled}
 						autoComplete="off"
 						spellCheck={false}
-						onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value)}
+						onChange={(event: ChangeEvent<HTMLInputElement>) =>
+							onChange(event.target.value)
+						}
 						onFocus={onFocus}
 						onBlur={onBlur}
 						onKeyDown={onKeyDown}

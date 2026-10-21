@@ -26,12 +26,7 @@ import { DragChip } from './DragChip';
 import { useResolvedItems } from './hooks/useResolvedItems';
 import { useSortableAnnouncements } from './hooks/useSortableAnnouncements';
 import { aria, focusAfterRender, itemName, removeButtonId } from './utils';
-import {
-	CountPill,
-	HeaderRow,
-	HeaderTitle,
-	SelectedListEl,
-} from './styles';
+import { CountPill, HeaderRow, HeaderTitle, SelectedListEl } from './styles';
 import type {
 	ContentItem,
 	ContentPickerIconMap,

@@ -49,9 +49,7 @@ describe('useKeyboardNav', () => {
 
 	it('Escape calls onEscape', () => {
 		const onEscape = vi.fn();
-		const { result } = renderHook(() =>
-			useKeyboardNav({ itemCount: 3, onEscape }),
-		);
+		const { result } = renderHook(() => useKeyboardNav({ itemCount: 3, onEscape }));
 		act(() => result.current.handleKeyDown(keyEvent('Escape')));
 		expect(onEscape).toHaveBeenCalled();
 	});

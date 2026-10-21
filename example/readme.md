@@ -70,11 +70,11 @@ pickers in the demo so you can compare on the fly.
 
 Pickers shown:
 
-| Picker | Kind | Types | Max | Orderable |
-|---|---|---|---|---|
-| Related content | `post` | post + page | 5 | yes |
-| Featured category | `term` | category | 1 | no |
-| Primary author | `user` | — | 1 | no |
+| Picker            | Kind   | Types       | Max | Orderable |
+| ----------------- | ------ | ----------- | --- | --------- |
+| Related content   | `post` | post + page | 5   | yes       |
+| Featured category | `term` | category    | 1   | no        |
+| Primary author    | `user` | —           | 1   | no        |
 
 ## Troubleshooting
 

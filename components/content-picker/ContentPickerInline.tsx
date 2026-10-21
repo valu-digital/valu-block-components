@@ -101,9 +101,7 @@ export const ContentPickerInline = (props: ContentPickerInlineProps) => {
 	const disabled = controller.maxedOut;
 	const shouldShowList =
 		!disabled &&
-		(controller.debouncedQuery.trim().length > 0 ||
-			fetchOnOpen ||
-			value.length === 0);
+		(controller.debouncedQuery.trim().length > 0 || fetchOnOpen || value.length === 0);
 
 	return (
 		<div>

@@ -52,9 +52,7 @@ const parseHeader = (response: Response, key: string): number => {
 	return Number.isNaN(parsed) ? 0 : parsed;
 };
 
-export const fetchDocuments = async (
-	args: FetchDocumentsArgs,
-): Promise<FetchDocumentsPage> => {
+export const fetchDocuments = async (args: FetchDocumentsArgs): Promise<FetchDocumentsPage> => {
 	const rawPath = buildPath(args);
 	const path = args.request
 		? args.request(rawPath, { query: args.query, page: args.page })

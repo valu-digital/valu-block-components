@@ -50,7 +50,9 @@ export const SelectedRow = styled.li<{ dragging?: boolean; missing?: boolean }>`
 	border-radius: ${t.radiusMd};
 	min-height: ${t.rowMinHeight};
 	box-shadow: ${({ dragging }) => (dragging ? t.shadowPopover : 'none')};
-	transition: box-shadow ${t.transitionFast}, border-color ${t.transitionFast};
+	transition:
+		box-shadow ${t.transitionFast},
+		border-color ${t.transitionFast};
 
 	&:hover {
 		border-color: ${({ missing }) => (missing ? t.dangerLine : t.gray600)};

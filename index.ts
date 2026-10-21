@@ -5,7 +5,12 @@ export * from './components/matrix';
 // colliding with the content-picker's generic types when consumers import
 // from the package root. Use `@valu/block-components/components/document-picker`
 // for the clean type names.
-export { DocumentPicker, MediaLibraryButton, ExtensionBadge, FileSize } from './components/document-picker';
+export {
+	DocumentPicker,
+	MediaLibraryButton,
+	ExtensionBadge,
+	FileSize,
+} from './components/document-picker';
 export {
 	DEFAULT_DOCUMENT_MIME_TYPES,
 	mapMediaToDocumentItem,

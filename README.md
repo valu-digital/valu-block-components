@@ -40,18 +40,18 @@ If you use TypeScript or run unit tests that import this package, install the
 import { ContentPicker } from '@valu/block-components/components/content-picker';
 
 function Edit({ attributes, setAttributes }) {
-    return (
-        <ContentPicker
-            label="Related posts"
-            variant="popover"
-            kind="post"
-            types={['post', 'page']}
-            maxItems={5}
-            orderable
-            value={attributes.related}
-            onChange={(items) => setAttributes({ related: items })}
-        />
-    );
+	return (
+		<ContentPicker
+			label="Related posts"
+			variant="popover"
+			kind="post"
+			types={['post', 'page']}
+			maxItems={5}
+			orderable
+			value={attributes.related}
+			onChange={(items) => setAttributes({ related: items })}
+		/>
+	);
 }
 ```
 

@@ -57,7 +57,9 @@ export function Edit({ attributes, setAttributes }: EditProps) {
 			</InspectorControls>
 
 			<section>
-				<h3 style={{ marginTop: 0 }}>{__('Documents — multi-select, ordered', 'valu-cp-demo')}</h3>
+				<h3 style={{ marginTop: 0 }}>
+					{__('Documents — multi-select, ordered', 'valu-cp-demo')}
+				</h3>
 				<p style={{ marginTop: 0, color: '#757575' }}>
 					{__(
 						'Pick up to 5 documents. Drag to reorder, use the chevrons, or open the Media Library modal to browse / upload.',

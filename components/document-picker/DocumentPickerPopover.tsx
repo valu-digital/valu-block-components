@@ -9,11 +9,7 @@ import { useDocumentPickerController } from './hooks/useDocumentPickerController
 import { aria } from './utils';
 import { ActionsRow, MaxedOutBanner } from './styles';
 import { EmotionCacheProvider } from '../content-picker/styles/emotionCache';
-import type {
-	DocumentItem,
-	DocumentPickerLabels,
-	DocumentPickerProps,
-} from './types';
+import type { DocumentItem, DocumentPickerLabels, DocumentPickerProps } from './types';
 
 export interface DocumentPickerPopoverProps {
 	rootId: string;

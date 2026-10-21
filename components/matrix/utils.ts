@@ -1,10 +1,4 @@
-import type {
-	ColId,
-	MatrixColumn,
-	MatrixColumnGroup,
-	MatrixLabels,
-	RowId,
-} from './types';
+import type { ColId, MatrixColumn, MatrixColumnGroup, MatrixLabels, RowId } from './types';
 
 /** Selection-set key for a single cell. */
 export const cellKey = (rowId: RowId, colId: ColId): string => `${rowId}::${colId}`;
@@ -15,10 +9,7 @@ export const cellKey = (rowId: RowId, colId: ColId): string => `${rowId}::${colI
  * @example
  * selectionByRow(value, 'user-42')  // ['create', 'edit']
  */
-export const selectionByRow = (
-	value: ReadonlySet<string>,
-	rowId: RowId,
-): ColId[] => {
+export const selectionByRow = (value: ReadonlySet<string>, rowId: RowId): ColId[] => {
 	const prefix = `${rowId}::`;
 	const out: ColId[] = [];
 	for (const key of value) {

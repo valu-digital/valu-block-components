@@ -74,10 +74,7 @@ describe('Matrix — flat columns', () => {
 		await user.click(aliceEmailCheckbox);
 
 		expect(onChange).toHaveBeenCalledTimes(1);
-		const [next, change] = onChange.mock.calls[0] as [
-			ReadonlySet<string>,
-			MatrixChange,
-		];
+		const [next, change] = onChange.mock.calls[0] as [ReadonlySet<string>, MatrixChange];
 		expect(next.has('u1::email')).toBe(true);
 		expect(change).toEqual({ rowId: 'u1', colId: 'email', checked: true });
 	});

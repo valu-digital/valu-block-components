@@ -8,10 +8,7 @@ import { useMemo } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
 import { __ } from '@wordpress/i18n';
 
-import {
-	ContentPicker,
-	type ContentItem,
-} from '@valu/block-components/components/content-picker';
+import { ContentPicker, type ContentItem } from '@valu/block-components/components/content-picker';
 
 import { contactIcon } from '../icons/contact-icon';
 
@@ -62,8 +59,7 @@ type BlockEditProps = {
 
 const withContactsInspector = createHigherOrderComponent(
 	(BlockEdit: React.ComponentType<BlockEditProps>) => (props: BlockEditProps) => {
-		const isOurs =
-			props.name === 'core/query' && props.attributes?.namespace === VARIATION;
+		const isOurs = props.name === 'core/query' && props.attributes?.namespace === VARIATION;
 
 		if (!isOurs) {
 			return <BlockEdit {...props} />;
@@ -75,14 +71,10 @@ const withContactsInspector = createHigherOrderComponent(
 		const records = useSelect(
 			(select) =>
 				ids.length > 0
-					? (select(coreStore).getEntityRecords(
-							'postType',
-							'valu_contact',
-							{
-								include: ids,
-								per_page: ids.length,
-							},
-						) as ContactRecord[] | null)
+					? (select(coreStore).getEntityRecords('postType', 'valu_contact', {
+							include: ids,
+							per_page: ids.length,
+						}) as ContactRecord[] | null)
 					: null,
 			[idsKey],
 		);

@@ -1,21 +1,10 @@
 import { useCallback, useEffect, useRef, type MouseEvent } from 'react';
 import { Icon } from '@wordpress/components';
 
-import {
-	ItemBody,
-	Option,
-	PrimaryText,
-	SecondaryText,
-	Thumb,
-	TypeHint,
-} from './styles';
+import { ItemBody, Option, PrimaryText, SecondaryText, Thumb, TypeHint } from './styles';
 import { StatusBadge } from './badges/StatusBadge';
 import { resolveItemIcon, toDisplayUrl } from './utils';
-import type {
-	ContentItem,
-	ContentPickerIconMap,
-	SuggestionRenderState,
-} from './types';
+import type { ContentItem, ContentPickerIconMap, SuggestionRenderState } from './types';
 
 export interface SuggestionItemProps {
 	item: ContentItem;
@@ -98,10 +87,7 @@ export const SuggestionItem = ({
 			onClick={handleClick}
 		>
 			{hasVisual ? (
-				<Thumb
-					hasImage={Boolean(item.thumbnailUrl) && !isAvatar}
-					avatar={isAvatar}
-				>
+				<Thumb hasImage={Boolean(item.thumbnailUrl) && !isAvatar} avatar={isAvatar}>
 					{item.thumbnailUrl ? (
 						<img src={item.thumbnailUrl} alt="" loading="lazy" />
 					) : icon ? (

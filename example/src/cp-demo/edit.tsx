@@ -46,8 +46,14 @@ export function Edit({ attributes, setAttributes }: EditProps) {
 						label={__('Search interaction', 'valu-cp-demo')}
 						selected={attributes.variant}
 						options={[
-							{ label: __('Popover (LinkControl-style)', 'valu-cp-demo'), value: 'popover' },
-							{ label: __('Inline suggestion panel', 'valu-cp-demo'), value: 'inline' },
+							{
+								label: __('Popover (LinkControl-style)', 'valu-cp-demo'),
+								value: 'popover',
+							},
+							{
+								label: __('Inline suggestion panel', 'valu-cp-demo'),
+								value: 'inline',
+							},
 						]}
 						onChange={(value) =>
 							setAttributes({ variant: value as Attributes['variant'] })
@@ -55,7 +61,10 @@ export function Edit({ attributes, setAttributes }: EditProps) {
 					/>
 				</PanelBody>
 
-				<PanelBody title={__('Related (sidebar, multi-select)', 'valu-cp-demo')} initialOpen={false}>
+				<PanelBody
+					title={__('Related (sidebar, multi-select)', 'valu-cp-demo')}
+					initialOpen={false}
+				>
 					<ContentPicker
 						label={__('Related posts in sidebar', 'valu-cp-demo')}
 						hideLabelFromVision
@@ -72,7 +81,10 @@ export function Edit({ attributes, setAttributes }: EditProps) {
 					/>
 				</PanelBody>
 
-				<PanelBody title={__('Featured (single select, term)', 'valu-cp-demo')} initialOpen={false}>
+				<PanelBody
+					title={__('Featured (single select, term)', 'valu-cp-demo')}
+					initialOpen={false}
+				>
 					<ContentPicker
 						label={__('Featured category', 'valu-cp-demo')}
 						variant={attributes.variant}
@@ -100,9 +112,7 @@ export function Edit({ attributes, setAttributes }: EditProps) {
 			</InspectorControls>
 
 			<section>
-				<h3 style={{ marginTop: 0 }}>
-					{__('Related posts', 'valu-cp-demo')}
-				</h3>
+				<h3 style={{ marginTop: 0 }}>{__('Related posts', 'valu-cp-demo')}</h3>
 				<p style={{ marginTop: 0, color: '#757575' }}>
 					{__(
 						'Pick up to five posts or pages. Drag to reorder. Uses the variant selected in the sidebar.',
@@ -258,7 +268,9 @@ function MatrixDemo() {
 			</div>
 
 			<div>
-				<h3 style={{ marginTop: 0 }}>{__('Matrix — with master column', 'valu-cp-demo')}</h3>
+				<h3 style={{ marginTop: 0 }}>
+					{__('Matrix — with master column', 'valu-cp-demo')}
+				</h3>
 				<p style={{ marginTop: 0, color: '#757575' }}>
 					{__(
 						'Toggle the master column off to disable a row. Carol starts disabled.',
@@ -282,7 +294,9 @@ function MatrixDemo() {
 			</div>
 
 			<div>
-				<h3 style={{ marginTop: 0 }}>{__('Matrix — rows are not users', 'valu-cp-demo')}</h3>
+				<h3 style={{ marginTop: 0 }}>
+					{__('Matrix — rows are not users', 'valu-cp-demo')}
+				</h3>
 				<p style={{ marginTop: 0, color: '#757575' }}>
 					{__(
 						'API permissions: features × read/write. Same component, no avatar/sublabel needed.',

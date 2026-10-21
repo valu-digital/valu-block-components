@@ -7,11 +7,7 @@ import { MediaLibraryButton } from './MediaLibraryButton';
 import { useDocumentPickerController } from './hooks/useDocumentPickerController';
 import { aria } from './utils';
 import { ActionsRow, MaxedOutBanner, SuggestionsShell } from './styles';
-import type {
-	DocumentItem,
-	DocumentPickerLabels,
-	DocumentPickerProps,
-} from './types';
+import type { DocumentItem, DocumentPickerLabels, DocumentPickerProps } from './types';
 
 export interface DocumentPickerInlineProps {
 	rootId: string;
@@ -99,9 +95,7 @@ export const DocumentPickerInline = (props: DocumentPickerInlineProps) => {
 	const disabled = controller.maxedOut;
 	const shouldShowList =
 		!disabled &&
-		(controller.debouncedQuery.trim().length > 0 ||
-			fetchOnOpen ||
-			value.length === 0);
+		(controller.debouncedQuery.trim().length > 0 || fetchOnOpen || value.length === 0);
 
 	return (
 		<div>

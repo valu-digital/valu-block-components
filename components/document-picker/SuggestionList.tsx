@@ -13,11 +13,7 @@ import {
 	StickyHeader,
 } from './styles';
 import { aria } from './utils';
-import type {
-	DocumentItem,
-	DocumentPickerLabels,
-	SuggestionRenderState,
-} from './types';
+import type { DocumentItem, DocumentPickerLabels, SuggestionRenderState } from './types';
 
 export interface SuggestionListProps {
 	listboxId: string;

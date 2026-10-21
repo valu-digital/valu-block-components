@@ -15,12 +15,7 @@ import {
 	StickyHeader,
 } from './styles';
 import { aria } from './utils';
-import type {
-	ContentItem,
-	ContentKind,
-	ContentPickerIconMap,
-	ContentPickerLabels,
-} from './types';
+import type { ContentItem, ContentKind, ContentPickerIconMap, ContentPickerLabels } from './types';
 
 export interface SuggestionListProps {
 	listboxId: string;
@@ -119,7 +114,8 @@ export const SuggestionList = ({
 			<ListboxScroll ref={scrollRef}>
 				{header}
 				<ErrorState role="alert">
-					{labels.empty ?? __('Search failed. Please try again.', 'valu-block-components')}
+					{labels.empty ??
+						__('Search failed. Please try again.', 'valu-block-components')}
 				</ErrorState>
 			</ListboxScroll>
 		);
@@ -140,7 +136,8 @@ export const SuggestionList = ({
 	if (suggestions.length === 0) {
 		const emptyMessage =
 			query.trim().length > 0
-				? (labels.empty ?? __('No matches. Try a different search.', 'valu-block-components'))
+				? (labels.empty ??
+					__('No matches. Try a different search.', 'valu-block-components'))
 				: __('Type to search.', 'valu-block-components');
 		return (
 			<ListboxScroll ref={scrollRef}>

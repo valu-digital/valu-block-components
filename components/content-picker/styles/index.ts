@@ -56,7 +56,9 @@ export const InputShell = styled.div`
 	border-radius: ${t.radiusMd};
 	padding: 6px ${t.spaceMd};
 	min-height: 40px;
-	transition: border-color ${t.transitionFast}, box-shadow ${t.transitionFast};
+	transition:
+		border-color ${t.transitionFast},
+		box-shadow ${t.transitionFast};
 
 	&:focus-within {
 		border-color: ${t.accent};
@@ -352,7 +354,9 @@ export const SelectedRow = styled.li<{ dragging?: boolean; missing?: boolean }>`
 	border-radius: ${t.radiusMd};
 	min-height: ${t.rowMinHeight};
 	box-shadow: ${({ dragging }) => (dragging ? t.shadowPopover : 'none')};
-	transition: box-shadow ${t.transitionFast}, border-color ${t.transitionFast};
+	transition:
+		box-shadow ${t.transitionFast},
+		border-color ${t.transitionFast};
 
 	&:hover {
 		border-color: ${({ missing }) => (missing ? t.dangerLine : t.gray600)};

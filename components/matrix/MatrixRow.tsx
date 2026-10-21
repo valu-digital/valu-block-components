@@ -47,11 +47,7 @@ interface MatrixRowProps {
 const isGroupExpanded = (group: MatrixColumnGroup, expanded: ReadonlySet<string>): boolean =>
 	group.collapsible === false ? true : expanded.has(group.id);
 
-const countSelected = (
-	value: ReadonlySet<string>,
-	rowId: string,
-	cols: MatrixColumn[],
-): number => {
+const countSelected = (value: ReadonlySet<string>, rowId: string, cols: MatrixColumn[]): number => {
 	let n = 0;
 	for (const c of cols) if (value.has(cellKey(rowId, c.id))) n += 1;
 	return n;

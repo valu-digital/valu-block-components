@@ -40,7 +40,13 @@ afterEach(() => {
 describe('fetchSearch', () => {
 	it('builds a post-search path with subtype and _fields', async () => {
 		apiFetchMock = vi.fn().mockResolvedValue(jsonResponse([], 1));
-		await fetchSearch({ query: 'hello', kind: 'post', types: ['post', 'page'], page: 1, perPage: 10 });
+		await fetchSearch({
+			query: 'hello',
+			kind: 'post',
+			types: ['post', 'page'],
+			page: 1,
+			perPage: 10,
+		});
 		const call = apiFetchMock.mock.calls[0][0] as { path: string };
 		expect(call.path).toContain('/wp/v2/search?');
 		expect(call.path).toContain('search=hello');

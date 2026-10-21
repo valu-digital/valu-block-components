@@ -100,12 +100,13 @@ push.
 > verifier returns HTTP 422 for provenance bundles from private repos.
 > If the repo ever has to go private, drop `--provenance`; OIDC-based
 > publishing via Trusted Publisher still works without it.
-   - `--access public` is required on scoped (`@valu/…`) packages to publish
-     them to the free tier (also baked into `publishConfig` in package.json).
-   - `--provenance` attests the build chain on npm; users can verify which
-     GitHub Actions run produced the tarball.
-   - `--ignore-scripts` skips rerunning the `prepublishOnly` lifecycle
-     (the workflow already ran typecheck + tests + build).
+
+- `--access public` is required on scoped (`@valu/…`) packages to publish
+  them to the free tier (also baked into `publishConfig` in package.json).
+- `--provenance` attests the build chain on npm; users can verify which
+  GitHub Actions run produced the tarball.
+- `--ignore-scripts` skips rerunning the `prepublishOnly` lifecycle
+  (the workflow already ran typecheck + tests + build).
 
 ### One-time setup per repo
 
@@ -118,11 +119,11 @@ To (re-)establish the trust:
 1. On npmjs.com → `@valu/block-components` → **Settings** →
    **Trusted Publisher** → **GitHub Actions**.
 2. Fill in:
-   - **Organization or user**: `valu-digital`
-   - **Repository**: `valu-block-components`
-   - **Workflow filename**: `publish.yml`
-   - **Environment name**: *leave blank* (or set it if you configure a
-     GitHub Actions environment with protection rules — see below).
+    - **Organization or user**: `valu-digital`
+    - **Repository**: `valu-block-components`
+    - **Workflow filename**: `publish.yml`
+    - **Environment name**: _leave blank_ (or set it if you configure a
+      GitHub Actions environment with protection rules — see below).
 3. **Set up connection**.
 4. Optionally, tighten package access to **"Require two-factor
    authentication and disallow tokens"** — with Trusted Publisher
@@ -131,12 +132,12 @@ To (re-)establish the trust:
 5. Ensure the `@valu` npm org exists and your account has publish
    rights on `@valu/block-components`.
 
-> **About environments**: GitHub Actions *environments* are optional
+> **About environments**: GitHub Actions _environments_ are optional
 > deployment gates. Configuring one in the repo Settings lets you
 > require reviewer approval, pin a branch/tag pattern, or keep separate
 > secrets per environment before a publish job runs. If you set one up,
 > put its name in both the npm Trusted Publisher form and as `environment:
-> <name>` in the workflow's job spec. Skip if you don't need the gate.
+<name>` in the workflow's job spec. Skip if you don't need the gate.
 
 ### Manual publish (fallback)
 
@@ -178,8 +179,9 @@ npm pack --dry-run
 ```
 
 Expected: `README.md`, `package.json`, and `dist/**` (ESM + CJS + `.d.ts`
-+ sourcemaps for the root barrel and each exported subpath). ~200 kB
-packed, no source files.
+
+- sourcemaps for the root barrel and each exported subpath). ~200 kB
+  packed, no source files.
 
 ## Commit conventions
 
@@ -189,7 +191,7 @@ reading `git log`:
 - `feat:` / `fix:` / `chore:` / `docs:` / `ci:` / `refactor:` / `test:`
   prefixes for the subject line.
 - Subject in imperative mood, ≤ ~72 chars.
-- Body wrapped at ~72, explains the *why* as well as the *what*.
+- Body wrapped at ~72, explains the _why_ as well as the _what_.
 
 ## Troubleshooting
 
@@ -208,23 +210,24 @@ reading `git log`:
   workflow (required for OIDC).
 - **npm publish fails with `E404` after the provenance statement
   was already signed** — two unrelated causes for the same error:
-  1. **CLI too old.** Provenance signing works on npm ≥ 9.5, but
-     Trusted-Publisher *registry* auth via OIDC requires npm ≥ 11.5.1.
-     The workflow pins `npm@latest` via Corepack; if you removed that
-     step, bring it back.
-  2. **`.npmrc` has an `_authToken` line.** Trusted Publisher's docs
-     are explicit: any `_authToken` line in `.npmrc` (even an empty
-     one) blocks OIDC fallback, so npm tries an empty-token PUT and
-     the registry answers 404. `actions/setup-node`'s `registry-url:`
-     input is the sneaky culprit — it writes that line automatically.
-     Leave `registry-url` OFF for Trusted Publisher workflows
-     (`registry.npmjs.org` is the npm default anyway).
+    1. **CLI too old.** Provenance signing works on npm ≥ 9.5, but
+       Trusted-Publisher _registry_ auth via OIDC requires npm ≥ 11.5.1.
+       The workflow pins `npm@latest` via Corepack; if you removed that
+       step, bring it back.
+    2. **`.npmrc` has an `_authToken` line.** Trusted Publisher's docs
+       are explicit: any `_authToken` line in `.npmrc` (even an empty
+       one) blocks OIDC fallback, so npm tries an empty-token PUT and
+       the registry answers 404. `actions/setup-node`'s `registry-url:`
+       input is the sneaky culprit — it writes that line automatically.
+       Leave `registry-url` OFF for Trusted Publisher workflows
+       (`registry.npmjs.org` is the npm default anyway).
 
-  If both are correct, verify the Trusted Publisher connection on
-  npmjs.com — a mismatched org / repo / workflow filename also shows
-  up as 404.
+    If both are correct, verify the Trusted Publisher connection on
+    npmjs.com — a mismatched org / repo / workflow filename also shows
+    up as 404.
+
 - **npm publish fails with `E422 Unprocessable Entity — Unsupported
-  GitHub Actions source repository visibility: "private"`** — you
+GitHub Actions source repository visibility: "private"`** — you
   re-added `--provenance` on a private repo. npm's sigstore verifier
   requires a public source repo to verify provenance bundles. Either
   drop `--provenance` or make the GitHub repo public.

@@ -93,13 +93,16 @@ export const useContentPickerController = (
 		return types;
 	}, [activeTypeFilter, types]);
 
-	const currentPostId = useSelect((select) => {
-		if (!excludeCurrentPost || kind !== 'post') return 0;
-		const editor = select('core/editor' as never) as
-			| { getCurrentPostId?: () => number | null }
-			| undefined;
-		return editor?.getCurrentPostId?.() ?? 0;
-	}, [excludeCurrentPost, kind]);
+	const currentPostId = useSelect(
+		(select) => {
+			if (!excludeCurrentPost || kind !== 'post') return 0;
+			const editor = select('core/editor' as never) as
+				| { getCurrentPostId?: () => number | null }
+				| undefined;
+			return editor?.getCurrentPostId?.() ?? 0;
+		},
+		[excludeCurrentPost, kind],
+	);
 
 	const enabled = active && (fetchEmpty || debouncedQuery.trim().length > 0);
 
@@ -149,7 +152,15 @@ export const useContentPickerController = (
 				count,
 			),
 		);
-	}, [suggestions.length, query_.isFetching, query_.isError, active, debouncedQuery, fetchEmpty, announce]);
+	}, [
+		suggestions.length,
+		query_.isFetching,
+		query_.isError,
+		active,
+		debouncedQuery,
+		fetchEmpty,
+		announce,
+	]);
 
 	const maxedOut = isMaxedOut(value, maxItems);
 
@@ -178,15 +189,19 @@ export const useContentPickerController = (
 		[maxedOut, maxItems, value, onChange, announceImmediate, onSelectSideEffect],
 	);
 
-	const { highlightedIndex, setHighlightedIndex, reset: resetHighlight, handleKeyDown } =
-		useKeyboardNav({
-			itemCount: suggestions.length,
-			onSelect: (i) => {
-				const item = suggestions[i];
-				if (item) select(item);
-			},
-			onEscape,
-		});
+	const {
+		highlightedIndex,
+		setHighlightedIndex,
+		reset: resetHighlight,
+		handleKeyDown,
+	} = useKeyboardNav({
+		itemCount: suggestions.length,
+		onSelect: (i) => {
+			const item = suggestions[i];
+			if (item) select(item);
+		},
+		onEscape,
+	});
 
 	useEffect(() => {
 		resetHighlight();
@@ -217,4 +232,3 @@ export const useContentPickerController = (
 		effectiveSearchTypes,
 	};
 };
-

@@ -1,12 +1,6 @@
 import { useCallback, useEffect, useRef, type MouseEvent, type ReactNode } from 'react';
 
-import {
-	DocMetaInline,
-	DocRowBody,
-	FilenameText,
-	Option,
-	PrimaryText,
-} from './styles';
+import { DocMetaInline, DocRowBody, FilenameText, Option, PrimaryText } from './styles';
 import { ExtensionBadge } from './badges/ExtensionBadge';
 import { formatFileSize, formatModified } from './utils';
 import type { DocumentItem, SuggestionRenderState } from './types';

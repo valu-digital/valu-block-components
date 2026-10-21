@@ -8,11 +8,7 @@ import { EmotionCacheProvider } from './styles/emotionCache';
 import { Root } from './styles';
 import { useFocusAddedRow } from './hooks/useFocusAddedRow';
 import { isMaxedOut, toItemLimit } from './utils';
-import type {
-	ContentItem,
-	ContentPickerLabels,
-	ContentPickerProps,
-} from './types';
+import type { ContentItem, ContentPickerLabels, ContentPickerProps } from './types';
 
 const DEFAULT_LABELS: ContentPickerLabels = {};
 

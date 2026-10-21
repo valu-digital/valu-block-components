@@ -56,9 +56,7 @@ export const humanizeType = (type: string, kind: ContentKind): string => {
 		attachment: __('Media', 'valu-block-components'),
 	};
 	if (postTypeLabels[type]) return postTypeLabels[type];
-	return type
-		.replace(/[-_]+/g, ' ')
-		.replace(/\b\w/g, (c) => c.toUpperCase());
+	return type.replace(/[-_]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
 export const humanizeStatus = (status: ContentStatus | undefined): string | null => {

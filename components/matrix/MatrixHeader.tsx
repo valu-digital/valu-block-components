@@ -1,10 +1,5 @@
 import { GroupHeaderButton, Caret, FillerHeaderCell, HeaderCell } from './styles';
-import type {
-	MatrixColumn,
-	MatrixColumnGroup,
-	MatrixLabels,
-	MatrixMasterColumn,
-} from './types';
+import type { MatrixColumn, MatrixColumnGroup, MatrixLabels, MatrixMasterColumn } from './types';
 
 interface MatrixHeaderProps {
 	groups: MatrixColumnGroup[];

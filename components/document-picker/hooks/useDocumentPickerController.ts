@@ -150,9 +150,8 @@ export const useDocumentPickerController = (
 			const remaining = Number.isFinite(maxItems)
 				? Math.max(0, maxItems - value.length)
 				: normalized.length;
-			const toAdd = (uniqueItems
-				? normalized.filter((n) => !existingIds.has(n.id))
-				: normalized
+			const toAdd = (
+				uniqueItems ? normalized.filter((n) => !existingIds.has(n.id)) : normalized
 			).slice(0, remaining);
 			if (toAdd.length === 0) return;
 			const next = [...value, ...toAdd];

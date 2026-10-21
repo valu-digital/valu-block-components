@@ -11,12 +11,7 @@ describe('cellKey', () => {
 
 describe('selectionByRow', () => {
 	it('returns only column ids that belong to the row', () => {
-		const set = new Set([
-			'row-1::a',
-			'row-1::b',
-			'row-2::a',
-			'row-3::a',
-		]);
+		const set = new Set(['row-1::a', 'row-1::b', 'row-2::a', 'row-3::a']);
 		const cols = selectionByRow(set, 'row-1').sort();
 		expect(cols).toEqual(['a', 'b']);
 	});

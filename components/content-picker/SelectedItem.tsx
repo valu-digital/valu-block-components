@@ -2,13 +2,7 @@ import { useRef, type CSSProperties, type ReactNode, type RefObject } from 'reac
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button, Icon } from '@wordpress/components';
-import {
-	caution,
-	chevronDown,
-	chevronUp,
-	closeSmall,
-	dragHandle,
-} from '@wordpress/icons';
+import { caution, chevronDown, chevronUp, closeSmall, dragHandle } from '@wordpress/icons';
 import { __, sprintf } from '@wordpress/i18n';
 
 import {
@@ -74,8 +68,7 @@ export const SelectedItem = ({
 	const isMissing = item.missing === 'deleted';
 	const isUnavailable = item.missing !== undefined;
 	const unavailableLabels: Record<MissingReason, string> = {
-		deleted:
-			labels.missing ?? __('This item is no longer available.', 'valu-block-components'),
+		deleted: labels.missing ?? __('This item is no longer available.', 'valu-block-components'),
 		trash: labels.statusTrash ?? __('This item is in the trash.', 'valu-block-components'),
 		restricted: labels.restricted ?? __("You can't view this item.", 'valu-block-components'),
 	};
@@ -165,12 +158,8 @@ export const SelectedItem = ({
 					</SelectedTitle>
 				</ItemBody>
 			)}
-			{!isMissing && showTypeBadge ? (
-				<TypeBadge type={item.type} kind={item.kind} />
-			) : null}
-			{!isMissing && hasAbnormalStatus ? (
-				<StatusBadge status={item.status!} />
-			) : null}
+			{!isMissing && showTypeBadge ? <TypeBadge type={item.type} kind={item.kind} /> : null}
+			{!isMissing && hasAbnormalStatus ? <StatusBadge status={item.status!} /> : null}
 			<ActionColumn>
 				{orderable ? (
 					<ReorderStack>

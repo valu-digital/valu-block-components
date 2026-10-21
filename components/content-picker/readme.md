@@ -11,18 +11,18 @@ CSS custom properties, and accessible by default.
 import { ContentPicker } from '@valu/block-components/components/content-picker';
 
 function Edit({ attributes, setAttributes }) {
-    return (
-        <ContentPicker
-            label="Related posts"
-            variant="popover"
-            kind="post"
-            types={['post', 'page']}
-            maxItems={5}
-            orderable
-            value={attributes.related}
-            onChange={(items) => setAttributes({ related: items })}
-        />
-    );
+	return (
+		<ContentPicker
+			label="Related posts"
+			variant="popover"
+			kind="post"
+			types={['post', 'page']}
+			maxItems={5}
+			orderable
+			value={attributes.related}
+			onChange={(items) => setAttributes({ related: items })}
+		/>
+	);
 }
 ```
 
@@ -66,47 +66,47 @@ interaction:
 
 ## Props
 
-| Prop | Type | Default | Description |
-|---|---|---|---|
-| `label` | `string` | _required_ | Accessible name. |
-| `hideLabelFromVision` | `boolean` | `false` | Visually hide the label. |
-| `help` | `string` | — | Help text under the input. |
-| `kind` | `'post' \| 'term' \| 'user'` | `'post'` | Entity kind to search. |
-| `types` | `string[]` | `['post','page']` (posts), `['category','post_tag']` (terms) | Sub-types to search. |
-| `variant` | `'popover' \| 'inline'` | `'popover'` | Interaction variant. |
-| `value` | `ContentItem[]` | — | Controlled value. |
-| `defaultValue` | `ContentItem[]` | `[]` | Uncontrolled initial value. |
-| `onChange` | `(items) => void` | — | Called with full next array. |
-| `maxItems` | `number` | `Infinity` | `1` = single-select. A numeric string such as `"20"` from `wp_localize_script()` counts as its number. |
-| `orderable` | `boolean` | `maxItems > 1` | Enable drag-reorder. |
-| `placeholder` | `string` | — | Input placeholder. |
-| `perPage` | `number` | `10` (popover) / `20` (inline) | Items per page. |
-| `inputDelayMs` | `number` | `250` | Debounce between keystrokes and fetch. |
-| `fetchOnOpen` | `boolean` | `false` | Fetch with empty query when the popover opens. |
-| `excludeCurrentPost` | `boolean` | `true` | Exclude the post being edited from results. |
-| `uniqueItems` | `boolean` | `true` | Prevent duplicates in the selection. |
-| `groupByType` | `boolean` | `types.length > 1` | Group results by type heading. |
-| `disableTypeFilter` | `boolean` | `false` | Hide the `All / Post / Page / …` chip row shown under the search when `types.length > 1`. |
-| `showUrl` | `boolean` | `true` | Show each suggestion's slug URL beneath its title in the suggestion list. |
-| `showTypeBadge` | `boolean` | `types.length > 1` | Show a `POSTS` / `PAGES` / `CATEGORIES` pill on each selected row. |
-| `icons` | `Record<string, IconType>` | `{ user: people }` | Icon overrides keyed by post-type / taxonomy / `'user'` slug. Accepts anything `<Icon>` accepts (WP icons, JSX, custom components). By default only users show an icon; everything else is icon-less unless it has a thumbnail or a consumer override. |
-| `filter` | `(items, ctx) => items` | — | Final filter over normalized suggestions. |
-| `request` | `(path, ctx) => path` | — | Rewrite the REST path before fetching. Post searches send `_fields=id,title,url,type,subtype`; widen it here if you need more fields in `raw`. |
-| `renderSuggestion` | `(item, state) => ReactNode` | — | Custom suggestion renderer. |
-| `renderSelected` | `(item) => ReactNode` | — | Custom selected-row renderer. |
-| `renderGroupHeading` | `(type, items) => ReactNode` | — | Custom group heading. |
-| `labels` | `ContentPickerLabels` | — | i18n overrides bag. |
+| Prop                  | Type                         | Default                                                      | Description                                                                                                                                                                                                                                            |
+| --------------------- | ---------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `label`               | `string`                     | _required_                                                   | Accessible name.                                                                                                                                                                                                                                       |
+| `hideLabelFromVision` | `boolean`                    | `false`                                                      | Visually hide the label.                                                                                                                                                                                                                               |
+| `help`                | `string`                     | —                                                            | Help text under the input.                                                                                                                                                                                                                             |
+| `kind`                | `'post' \| 'term' \| 'user'` | `'post'`                                                     | Entity kind to search.                                                                                                                                                                                                                                 |
+| `types`               | `string[]`                   | `['post','page']` (posts), `['category','post_tag']` (terms) | Sub-types to search.                                                                                                                                                                                                                                   |
+| `variant`             | `'popover' \| 'inline'`      | `'popover'`                                                  | Interaction variant.                                                                                                                                                                                                                                   |
+| `value`               | `ContentItem[]`              | —                                                            | Controlled value.                                                                                                                                                                                                                                      |
+| `defaultValue`        | `ContentItem[]`              | `[]`                                                         | Uncontrolled initial value.                                                                                                                                                                                                                            |
+| `onChange`            | `(items) => void`            | —                                                            | Called with full next array.                                                                                                                                                                                                                           |
+| `maxItems`            | `number`                     | `Infinity`                                                   | `1` = single-select. A numeric string such as `"20"` from `wp_localize_script()` counts as its number.                                                                                                                                                 |
+| `orderable`           | `boolean`                    | `maxItems > 1`                                               | Enable drag-reorder.                                                                                                                                                                                                                                   |
+| `placeholder`         | `string`                     | —                                                            | Input placeholder.                                                                                                                                                                                                                                     |
+| `perPage`             | `number`                     | `10` (popover) / `20` (inline)                               | Items per page.                                                                                                                                                                                                                                        |
+| `inputDelayMs`        | `number`                     | `250`                                                        | Debounce between keystrokes and fetch.                                                                                                                                                                                                                 |
+| `fetchOnOpen`         | `boolean`                    | `false`                                                      | Fetch with empty query when the popover opens.                                                                                                                                                                                                         |
+| `excludeCurrentPost`  | `boolean`                    | `true`                                                       | Exclude the post being edited from results.                                                                                                                                                                                                            |
+| `uniqueItems`         | `boolean`                    | `true`                                                       | Prevent duplicates in the selection.                                                                                                                                                                                                                   |
+| `groupByType`         | `boolean`                    | `types.length > 1`                                           | Group results by type heading.                                                                                                                                                                                                                         |
+| `disableTypeFilter`   | `boolean`                    | `false`                                                      | Hide the `All / Post / Page / …` chip row shown under the search when `types.length > 1`.                                                                                                                                                              |
+| `showUrl`             | `boolean`                    | `true`                                                       | Show each suggestion's slug URL beneath its title in the suggestion list.                                                                                                                                                                              |
+| `showTypeBadge`       | `boolean`                    | `types.length > 1`                                           | Show a `POSTS` / `PAGES` / `CATEGORIES` pill on each selected row.                                                                                                                                                                                     |
+| `icons`               | `Record<string, IconType>`   | `{ user: people }`                                           | Icon overrides keyed by post-type / taxonomy / `'user'` slug. Accepts anything `<Icon>` accepts (WP icons, JSX, custom components). By default only users show an icon; everything else is icon-less unless it has a thumbnail or a consumer override. |
+| `filter`              | `(items, ctx) => items`      | —                                                            | Final filter over normalized suggestions.                                                                                                                                                                                                              |
+| `request`             | `(path, ctx) => path`        | —                                                            | Rewrite the REST path before fetching. Post searches send `_fields=id,title,url,type,subtype`; widen it here if you need more fields in `raw`.                                                                                                         |
+| `renderSuggestion`    | `(item, state) => ReactNode` | —                                                            | Custom suggestion renderer.                                                                                                                                                                                                                            |
+| `renderSelected`      | `(item) => ReactNode`        | —                                                            | Custom selected-row renderer.                                                                                                                                                                                                                          |
+| `renderGroupHeading`  | `(type, items) => ReactNode` | —                                                            | Custom group heading.                                                                                                                                                                                                                                  |
+| `labels`              | `ContentPickerLabels`        | —                                                            | i18n overrides bag.                                                                                                                                                                                                                                    |
 
 ## Keyboard
 
-| Key | Action |
-|---|---|
-| Arrow Down / Up | Move highlight in suggestions. |
-| Home / End | Jump to first / last suggestion. |
-| Enter | Select the highlighted suggestion. |
-| Escape | Close the popover (popover variant); return focus to input. |
-| Tab | Commit focus change; does not select. |
-| Space (on drag handle) | Begin keyboard drag. Arrow keys move; Space drops. |
+| Key                    | Action                                                      |
+| ---------------------- | ----------------------------------------------------------- |
+| Arrow Down / Up        | Move highlight in suggestions.                              |
+| Home / End             | Jump to first / last suggestion.                            |
+| Enter                  | Select the highlighted suggestion.                          |
+| Escape                 | Close the popover (popover variant); return focus to input. |
+| Tab                    | Commit focus change; does not select.                       |
+| Space (on drag handle) | Begin keyboard drag. Arrow keys move; Space drops.          |
 
 ## Non-goals
 
@@ -125,22 +125,22 @@ components or be handled by the consumer:
 
 The API is clean-sheet. Rough mapping:
 
-| Old prop | New prop |
-|---|---|
-| `mode` | `kind` |
-| `contentTypes` | `types` |
-| `maxContentItems` | `maxItems` |
-| `isOrderable` | `orderable` |
-| `onPickChange` | `onChange` |
-| `content` | `value` / `defaultValue` |
-| `uniqueContentItems` | `uniqueItems` |
-| `perPage` | `perPage` (same) |
-| `fetchInitialResults` | `fetchOnOpen` |
-| `options.inputDelay` | `inputDelayMs` |
-| `singlePickedLabel` / `multiPickedLabel` | `labels.selectedSingular` / `labels.selectedPlural` |
-| `queryFilter` + `queryFieldsFilter` | `request` |
-| `searchResultFilter` + `pickedItemFilter` | `filter` |
-| `renderItem` / `renderItemType` / `PickedItemPreviewComponent` | `renderSuggestion` / `renderSelected` |
+| Old prop                                                       | New prop                                            |
+| -------------------------------------------------------------- | --------------------------------------------------- |
+| `mode`                                                         | `kind`                                              |
+| `contentTypes`                                                 | `types`                                             |
+| `maxContentItems`                                              | `maxItems`                                          |
+| `isOrderable`                                                  | `orderable`                                         |
+| `onPickChange`                                                 | `onChange`                                          |
+| `content`                                                      | `value` / `defaultValue`                            |
+| `uniqueContentItems`                                           | `uniqueItems`                                       |
+| `perPage`                                                      | `perPage` (same)                                    |
+| `fetchInitialResults`                                          | `fetchOnOpen`                                       |
+| `options.inputDelay`                                           | `inputDelayMs`                                      |
+| `singlePickedLabel` / `multiPickedLabel`                       | `labels.selectedSingular` / `labels.selectedPlural` |
+| `queryFilter` + `queryFieldsFilter`                            | `request`                                           |
+| `searchResultFilter` + `pickedItemFilter`                      | `filter`                                            |
+| `renderItem` / `renderItemType` / `PickedItemPreviewComponent` | `renderSuggestion` / `renderSelected`               |
 
 Picked items carry a `key` (uuid) separate from `id`, so persisted values
 from the old API need each item normalized with a generated `key` field

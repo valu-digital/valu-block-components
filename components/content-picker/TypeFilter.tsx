@@ -35,7 +35,9 @@ const Chip = styled.button<{ active?: boolean }>`
 	color: ${({ active }) => (active ? '#fff' : t.gray900)};
 	cursor: pointer;
 	white-space: nowrap;
-	transition: background ${t.transitionFast}, border-color ${t.transitionFast};
+	transition:
+		background ${t.transitionFast},
+		border-color ${t.transitionFast};
 
 	&:hover {
 		border-color: ${t.accent};

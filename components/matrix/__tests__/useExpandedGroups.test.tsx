@@ -5,9 +5,7 @@ import { useExpandedGroups } from '../hooks/useExpandedGroups';
 
 describe('useExpandedGroups (uncontrolled)', () => {
 	it('starts from defaultExpanded', () => {
-		const { result } = renderHook(() =>
-			useExpandedGroups({ defaultExpanded: new Set(['a']) }),
-		);
+		const { result } = renderHook(() => useExpandedGroups({ defaultExpanded: new Set(['a']) }));
 		expect(result.current.isExpanded('a')).toBe(true);
 		expect(result.current.isExpanded('b')).toBe(false);
 	});

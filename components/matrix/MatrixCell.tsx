@@ -3,13 +3,7 @@ import { CheckboxControl, ToggleControl } from '@wordpress/components';
 
 import { CellControlWrap, LeafCell } from './styles';
 import { cellKey, toggleCell, toPlainText } from './utils';
-import type {
-	CellContext,
-	MatrixChange,
-	MatrixColumn,
-	MatrixRow,
-	MatrixVariant,
-} from './types';
+import type { CellContext, MatrixChange, MatrixColumn, MatrixRow, MatrixVariant } from './types';
 
 interface MatrixCellProps {
 	row: MatrixRow;
