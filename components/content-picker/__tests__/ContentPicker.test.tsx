@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
@@ -37,6 +38,44 @@ describe('ContentPicker', () => {
 
 		const remove = await screen.findByRole('button', { name: 'Remove Seventh' });
 		expect(screen.queryByRole('combobox')).toBeNull();
+		await waitFor(() => expect(document.activeElement).toBe(remove));
+	});
+
+	it('moves focus to the new row when the parent re-keys the items', async () => {
+		const titles: Record<number, string> = { 3: 'Third', 7: 'Seventh' };
+		// Stores only ids, so the items it passes back have keys of its own.
+		const Parent = () => {
+			const [ids, setIds] = useState([3]);
+			return (
+				<ContentPicker
+					label="Pages"
+					variant="inline"
+					types={['page']}
+					maxItems={2}
+					fetchOnOpen
+					excludeCurrentPost={false}
+					value={ids.map((id) => ({
+						key: String(id),
+						id,
+						kind: 'post' as const,
+						type: 'page',
+						title: titles[id],
+					}))}
+					onChange={(next) => setIds(next.map((item) => item.id))}
+				/>
+			);
+		};
+		const { wrapper } = createCoreRegistry();
+		render(<Parent />, { wrapper });
+
+		await screen.findByRole('option', { name: /Seventh/ });
+		const input = screen.getByRole('combobox');
+		input.focus();
+		fireEvent.keyDown(input, { key: 'ArrowDown' });
+		fireEvent.keyDown(input, { key: 'Enter' });
+
+		const remove = await screen.findByRole('button', { name: 'Remove Seventh' });
+		expect(remove.id).toMatch(/-remove-7$/);
 		await waitFor(() => expect(document.activeElement).toBe(remove));
 	});
 });

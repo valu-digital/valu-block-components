@@ -7,7 +7,7 @@ import { SelectedList } from './SelectedList';
 import { MediaLibraryButton } from './MediaLibraryButton';
 import { EmotionCacheProvider } from '../content-picker/styles/emotionCache';
 import { ActionsRow, Root } from './styles';
-import { focusAfterRender, removeButtonId } from '../content-picker/utils';
+import { useFocusAddedRow } from '../content-picker/hooks/useFocusAddedRow';
 import { DEFAULT_DOCUMENT_MIME_TYPES, isMaxedOut } from './utils';
 import type { DocumentItem, DocumentPickerLabels, DocumentPickerProps } from './types';
 
@@ -98,19 +98,19 @@ export const DocumentPicker = ({
 	const showInput = !isFull && !hideInputForSingleSelect;
 
 	const rootRef = useRef<HTMLDivElement | null>(null);
+	const focusAddedRow = useFocusAddedRow(rootRef, rootId, value);
 
 	// A selection that fills the picker removes the search input, and focus
 	// with it. Move focus to the new row instead.
 	const handleSelect = useCallback(
 		(next: DocumentItem[]) => {
-			handleChange(next);
 			const added = next[next.length - 1];
-			const doc = rootRef.current?.ownerDocument;
-			if (added && doc && isMaxedOut(next, maxItems)) {
-				focusAfterRender(doc, removeButtonId(rootId, added.key));
+			if (added && isMaxedOut(next, maxItems)) {
+				focusAddedRow(added);
 			}
+			handleChange(next);
 		},
-		[handleChange, maxItems, rootId],
+		[handleChange, maxItems, focusAddedRow],
 	);
 
 	const variantProps = useMemo(
