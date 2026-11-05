@@ -20,10 +20,44 @@ export const tokens = {
 	gray600: 'var(--wp-components-color-gray-600, #757575)',
 	gray900: 'var(--wp-components-color-gray-900, #1e1e1e)',
 
+	gray400: 'var(--wp-components-color-gray-400, #c3c4c7)',
+	gray700: 'var(--wp-components-color-gray-700, #3c434a)',
+
+	/*
+	 * State colours from the "Matrix states" spec. Fixed WP admin palette
+	 * values (success / error / warning) — the admin has no CSS variables
+	 * for these. Accent-derived ones follow the admin theme colour.
+	 */
+	lockedBg: '#f6f7f7',
+	lockedFg: '#8c8f94',
+	lockedControlBg: '#f0f0f1',
+	lockedControlBorder: '#dcdcde',
+	inheritedControlBg:
+		'color-mix(in srgb, var(--wp-components-color-accent, var(--wp-admin-theme-color, #3858e9)) 30%, #ffffff)',
+	inheritedControlFg:
+		'color-mix(in srgb, var(--wp-components-color-accent, var(--wp-admin-theme-color, #3858e9)) 80%, #000000)',
+	addedBg: '#edfaef',
+	addedRule: '#00a32a',
+	addedFg: '#007017',
+	removedBg: '#fcf0f1',
+	removedRule: '#d63638',
+	removedFg: '#cc1818',
+	warningBg: '#fcf3e2',
+	warningIcon: '#f0b849',
+	successFg: '#007017',
+	errorFg: '#cc1818',
+	singleGroupBg:
+		'color-mix(in srgb, var(--wp-components-color-accent, var(--wp-admin-theme-color, #3858e9)) 4%, #ffffff)',
+	selectedRowBg:
+		'color-mix(in srgb, var(--wp-components-color-accent, var(--wp-admin-theme-color, #3858e9)) 4%, #ffffff)',
+
 	radiusSm: '2px',
 	radiusMd: '4px',
 
 	rowMinHeight: '44px',
+	selectColumnWidth: '48px',
+	cellControlSize: '16px',
+	resetButtonSize: '22px',
 
 	shadowStickyTop: 'inset 0 -1px 0 rgba(0, 0, 0, 0.08)',
 	shadowStickyLeft: 'inset -1px 0 0 rgba(0, 0, 0, 0.08)',
@@ -37,6 +71,9 @@ export const tokens = {
 
 	fontSizeBody: '13px',
 	fontSizeSmall: '11px',
+	fontSizeMeta: '12px',
+	fontSizeBadge: '10px',
+	fontFamilyMono: 'Menlo, Consolas, monospace',
 	fontWeightRegular: 400,
 	fontWeightMedium: 500,
 	fontWeightBold: 600,

@@ -67,6 +67,10 @@ export const Table = styled.table`
 	tbody tr:hover td {
 		background: ${t.bgMuted};
 	}
+
+	tbody tr[data-selected='true'] > * {
+		background: ${t.selectedRowBg};
+	}
 `;
 
 export const HeaderCell = styled.th<{
@@ -84,6 +88,19 @@ export const HeaderCell = styled.th<{
 	color: ${t.gray900};
 	white-space: nowrap;
 	text-align: ${(p) => p.$align ?? 'left'};
+
+	&[data-locked='true'] {
+		background: ${t.lockedBg};
+		color: ${t.lockedFg};
+	}
+	&[data-selection='single'] {
+		background: ${t.singleGroupBg};
+	}
+	&[data-group-start='true'] {
+		box-shadow:
+			inset 2px 0 0 ${t.accent},
+			${t.shadowStickyTop};
+	}
 
 	${(p) =>
 		p.$sticky &&
@@ -146,14 +163,14 @@ export const Caret = styled.span<{ $open: boolean }>`
 	transform: ${(p) => (p.$open ? 'rotate(0deg)' : 'rotate(-90deg)')};
 `;
 
-export const RowHeaderCell = styled.th<{ $leftSticky: boolean }>`
+export const RowHeaderCell = styled.th<{ $leftSticky: boolean; $leftOffset?: string }>`
 	min-width: 220px;
 	max-width: 320px;
 	${(p) =>
 		p.$leftSticky &&
 		css`
 			position: sticky;
-			left: 0;
+			left: ${p.$leftOffset ?? '0'};
 			z-index: ${t.zRowHeader};
 			box-shadow: ${t.shadowStickyLeft};
 		`};
@@ -207,6 +224,81 @@ export const MasterCell = styled.td<{ $leftSticky: boolean; $leftOffset: string 
 		`};
 `;
 
+/**
+ * Leaf cell states. Everything keys off data attributes so a single
+ * styled component covers every combination:
+ *
+ * - `data-diff`: inherited | added | removed
+ * - `data-locked`: per-cell / column / group lock (aria-disabled control)
+ * - `data-tone`: warning | danger
+ * - `data-selection`: single (radio group tint)
+ * - `data-group-start`: first column of a single-select group (accent rule)
+ */
+export const leafCellStateCss = css`
+	position: relative;
+
+	&&[data-tone='warning'] {
+		background: ${t.warningBg};
+	}
+	&&[data-tone='danger'] {
+		background: ${t.removedBg};
+	}
+
+	&&[data-selection='single'] {
+		background: ${t.singleGroupBg};
+	}
+	&&[data-group-start='true'] {
+		box-shadow: inset 2px 0 0 ${t.accent};
+	}
+
+	&&[data-diff='added'] {
+		background: ${t.addedBg};
+		box-shadow: inset 0 -2px 0 ${t.addedRule};
+	}
+	&&[data-diff='removed'] {
+		background: ${t.removedBg};
+		box-shadow: inset 0 -2px 0 ${t.removedRule};
+	}
+
+	/* Inherited: pale checkbox so overrides stand out. */
+	&[data-diff='inherited'] .components-checkbox-control__input:checked {
+		background: ${t.inheritedControlBg};
+		border-color: ${t.accent};
+	}
+	&[data-diff='inherited'] .components-checkbox-control__checked {
+		fill: ${t.inheritedControlFg};
+	}
+
+	/* Removed: red outlined box with a slash. */
+	&[data-diff='removed'] .components-checkbox-control__input {
+		border-color: ${t.removedFg};
+		background-color: #ffffff;
+		background-image: linear-gradient(
+			to top right,
+			transparent calc(50% - 1px),
+			${t.removedFg} calc(50% - 1px),
+			${t.removedFg} calc(50% + 1px),
+			transparent calc(50% + 1px)
+		);
+	}
+
+	&[data-locked='true'] {
+		background: ${t.lockedBg};
+	}
+	&[data-locked='true'] .components-checkbox-control__input,
+	&[data-locked='true'] input[type='radio'] {
+		background-color: ${t.lockedControlBg};
+		border-color: ${t.lockedControlBorder};
+		cursor: not-allowed;
+	}
+	&[data-locked='true'] .components-checkbox-control__checked {
+		fill: ${t.lockedFg};
+	}
+	&[data-locked='true'] .components-form-toggle {
+		opacity: 0.45;
+	}
+`;
+
 export const LeafCell = styled.td`
 	min-width: 88px;
 	text-align: center;
@@ -214,6 +306,8 @@ export const LeafCell = styled.td`
 	&[data-disabled='true'] {
 		opacity: 0.45;
 	}
+
+	${leafCellStateCss};
 `;
 
 export const SummaryCell = styled.td`
@@ -221,6 +315,17 @@ export const SummaryCell = styled.td`
 	text-align: center;
 	color: ${t.gray600};
 	font-variant-numeric: tabular-nums;
+
+	&&[data-locked='true'] {
+		background: ${t.lockedBg};
+		color: ${t.lockedFg};
+		font-size: ${t.fontSizeMeta};
+		text-align: left;
+	}
+	&&[data-selection='single'] {
+		background: ${t.singleGroupBg};
+		box-shadow: inset 2px 0 0 ${t.accent};
+	}
 `;
 
 /**
@@ -273,5 +378,230 @@ export const CellControlWrap = styled.div`
 `;
 
 export const Caption = styled.caption`
+	${visuallyHiddenCss};
+`;
+
+/* ------------------------------------------------------------------ */
+/* 0.8 extensions — cell state, baseline diff, single-select, rows.    */
+/* ------------------------------------------------------------------ */
+
+/** Small pill for tiers and similar labels (spec: 10px / 600, pill border). */
+export const Badge = styled.span`
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	padding: 1px 6px;
+	border: 1px solid ${t.gray400};
+	border-radius: 8px;
+	background: #ffffff;
+	color: ${t.gray700};
+	font-size: ${t.fontSizeBadge};
+	font-weight: ${t.fontWeightBold};
+	line-height: 12px;
+	text-transform: none;
+	letter-spacing: normal;
+	white-space: nowrap;
+`;
+
+/** Wraps header text + badge so the badge sits next to the label. */
+export const HeaderLabelWrap = styled.span<{ $muted?: boolean }>`
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	${(p) =>
+		p.$muted &&
+		css`
+			color: ${t.lockedFg};
+		`};
+`;
+
+export const HeaderStack = styled.span`
+	display: inline-flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 3px;
+`;
+
+/** Lays out control + diff marker + badge + reset inside a leaf cell. */
+export const CellInner = styled.div`
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+`;
+
+export const DiffMarker = styled.span<{ $kind: 'added' | 'removed' }>`
+	font-family: ${t.fontFamilyMono};
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 16px;
+	color: ${(p) => (p.$kind === 'added' ? t.addedFg : t.removedFg)};
+`;
+
+export const ToneIcon = styled.span`
+	display: inline-flex;
+	color: ${t.warningIcon};
+`;
+
+/**
+ * Per-cell reset button. Visible on cell hover / focus-within so the grid
+ * stays quiet; always in the DOM so keyboard users can reach it.
+ */
+export const CellResetButton = styled.button`
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: ${t.resetButtonSize};
+	height: ${t.resetButtonSize};
+	padding: 0;
+	border: 1px solid ${t.accent};
+	border-radius: 3px;
+	background: #ffffff;
+	color: ${t.accent};
+	cursor: pointer;
+	opacity: 0;
+
+	td:hover &,
+	td:focus-within &,
+	&:focus-visible {
+		opacity: 1;
+	}
+
+	&:focus-visible {
+		outline: 2px solid ${t.accent};
+		outline-offset: 1px;
+	}
+
+	svg {
+		fill: currentColor;
+	}
+`;
+
+/** Native radio styled to match the 16px WP checkbox. */
+export const Radio = styled.input`
+	appearance: none;
+	-webkit-appearance: none;
+	display: inline-grid;
+	place-content: center;
+	width: ${t.cellControlSize};
+	height: ${t.cellControlSize};
+	margin: 0;
+	border: 1.5px solid ${t.gray900};
+	border-radius: 50%;
+	background: #ffffff;
+	cursor: pointer;
+
+	&::before {
+		content: '';
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: ${t.accent};
+		transform: scale(0);
+		transition: transform ${t.transitionFast};
+	}
+
+	&:checked {
+		border-color: ${t.accent};
+	}
+	&:checked::before {
+		transform: scale(1);
+	}
+
+	&:focus-visible {
+		outline: 2px solid ${t.accent};
+		outline-offset: 2px;
+	}
+
+	&:disabled {
+		cursor: not-allowed;
+		background: ${t.lockedControlBg};
+		border-color: ${t.lockedControlBorder};
+	}
+`;
+
+export const SelectCell = styled.td<{ $leftSticky: boolean }>`
+	width: ${t.selectColumnWidth};
+	min-width: ${t.selectColumnWidth};
+	text-align: center;
+	${(p) =>
+		p.$leftSticky &&
+		css`
+			position: sticky;
+			left: 0;
+			z-index: ${t.zRowHeader};
+		`};
+`;
+
+/** Row-level status line under the row label. */
+export const RowStatusLine = styled.div<{ $status: string }>`
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: ${t.fontSizeMeta};
+	line-height: 16px;
+	color: ${(p) =>
+		p.$status === 'saved' ? t.successFg : p.$status === 'error' ? t.errorFg : t.gray600};
+
+	&:empty {
+		display: none;
+	}
+
+	svg {
+		flex-shrink: 0;
+		fill: currentColor;
+	}
+`;
+
+export const LinkButton = styled.button`
+	display: inline;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: ${t.accent};
+	font: inherit;
+	font-size: ${t.fontSizeMeta};
+	font-weight: ${t.fontWeightMedium};
+	line-height: 16px;
+	text-align: left;
+	cursor: pointer;
+
+	&:hover {
+		text-decoration: underline;
+	}
+
+	&:focus-visible {
+		outline: 2px solid ${t.accent};
+		outline-offset: 1px;
+		border-radius: ${t.radiusSm};
+	}
+`;
+
+export const RetryButton = styled(LinkButton)`
+	text-decoration: underline;
+	font-weight: ${t.fontWeightRegular};
+`;
+
+export const Spinner = styled.span`
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border: 1.5px solid ${t.gray300};
+	border-top-color: ${t.gray600};
+	border-radius: 50%;
+	animation: valu-mx-spin 0.8s linear infinite;
+
+	@keyframes valu-mx-spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		animation: none;
+	}
+`;
+
+export const VisuallyHidden = styled.span`
 	${visuallyHiddenCss};
 `;
