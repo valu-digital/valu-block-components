@@ -84,9 +84,23 @@ export const Matrix = (props: MatrixProps) => {
 
 	const resolvedLabels = useMemo(() => defaultLabels(labels), [labels]);
 
+	/*
+	 * Uncontrolled initial state: the Matrix-level `defaultExpanded` plus
+	 * every group with `defaultExpanded: true`. Ignored when `expanded` is
+	 * controlled, and only read on mount (the hook's initial state).
+	 */
+	const initialExpanded = useMemo(() => {
+		if (expanded !== undefined || flat) return defaultExpanded;
+		const fromGroups = groups.filter((g) => g.defaultExpanded).map((g) => g.id);
+		if (fromGroups.length === 0) return defaultExpanded;
+		return new Set([...(defaultExpanded ?? []), ...fromGroups]);
+		// Initial state only — later changes are intentionally not tracked.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
 	const { expanded: expandedGroups, toggle: toggleGroup } = useExpandedGroups({
 		expanded,
-		defaultExpanded,
+		defaultExpanded: initialExpanded,
 		onChange: onExpandedChange,
 	});
 

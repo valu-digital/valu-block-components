@@ -90,7 +90,10 @@ render a single "n / m" summary cell per row.
 />
 ```
 
-Mark a group as `collapsible: false` to pin it open.
+Mark a group as `collapsible: false` to pin it open. `defaultExpanded: true`
+on a group opens it initially when expansion is uncontrolled (merged with
+the Matrix-level `defaultExpanded`; ignored when `expanded` is passed).
+Before 0.8.0 this field was documented but had no effect.
 
 ### With master column
 
@@ -174,8 +177,9 @@ const groups = [
 ```
 
 A locked group's collapsed summary shows its `description` instead of the
-count. Groups start collapsed unless listed in `defaultExpanded` /
-`expanded`, so a locked group stays out of the way by default.
+count. Groups start collapsed unless opened via `defaultExpanded` (Matrix
+or group level) or `expanded`, so leave `defaultExpanded` off locked
+groups to keep them out of the way.
 
 ## Baseline diff
 

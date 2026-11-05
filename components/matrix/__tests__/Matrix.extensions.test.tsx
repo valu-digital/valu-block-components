@@ -622,3 +622,80 @@ describe('Matrix — row memoization', () => {
 		expect(second).toHaveBeenCalledTimes(1);
 	});
 });
+
+describe('Matrix — group.defaultExpanded', () => {
+	const groups: MatrixColumnGroup[] = [
+		{ id: 'open', label: 'Open', defaultExpanded: true, columns: [{ id: 'a', label: 'A' }] },
+		{ id: 'closed', label: 'Closed', columns: [{ id: 'b', label: 'B' }] },
+		{
+			id: 'locked',
+			label: 'Locked',
+			disabled: true,
+			description: 'Not in plan',
+			columns: [{ id: 'c', label: 'C' }],
+		},
+	];
+
+	it('expands groups with defaultExpanded when uncontrolled; others stay collapsed', () => {
+		render(
+			<Matrix
+				caption="X"
+				rows={[rows[0]]}
+				groups={groups}
+				value={new Set()}
+				onChange={() => {}}
+			/>,
+		);
+		expect(screen.getByRole('columnheader', { name: 'A' })).toBeInTheDocument();
+		expect(screen.queryByRole('columnheader', { name: 'B' })).toBeNull();
+		expect(screen.queryByRole('columnheader', { name: 'C' })).toBeNull();
+		expect(screen.getByText('Not in plan')).toBeInTheDocument();
+	});
+
+	it('merges with the Matrix-level defaultExpanded', () => {
+		render(
+			<Matrix
+				caption="X"
+				rows={[rows[0]]}
+				groups={groups}
+				defaultExpanded={new Set(['closed'])}
+				value={new Set()}
+				onChange={() => {}}
+			/>,
+		);
+		expect(screen.getByRole('columnheader', { name: 'A' })).toBeInTheDocument();
+		expect(screen.getByRole('columnheader', { name: 'B' })).toBeInTheDocument();
+	});
+
+	it('is ignored when expanded is controlled', () => {
+		render(
+			<Matrix
+				caption="X"
+				rows={[rows[0]]}
+				groups={groups}
+				expanded={new Set()}
+				value={new Set()}
+				onChange={() => {}}
+			/>,
+		);
+		expect(screen.queryByRole('columnheader', { name: 'A' })).toBeNull();
+	});
+
+	it('the user can still collapse a defaultExpanded group', async () => {
+		const user = userEvent.setup();
+		const onExpandedChange = vi.fn();
+		render(
+			<Matrix
+				caption="X"
+				rows={[rows[0]]}
+				groups={groups}
+				value={new Set()}
+				onChange={() => {}}
+				onExpandedChange={onExpandedChange}
+			/>,
+		);
+		await user.click(screen.getByRole('button', { name: 'Collapse group' }));
+		expect(screen.queryByRole('columnheader', { name: 'A' })).toBeNull();
+		expect([...(onExpandedChange.mock.calls[0][0] as Set<string>)]).toEqual([]);
+	});
+});
