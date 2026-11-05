@@ -237,13 +237,12 @@ export const MasterCell = styled.td<{ $leftSticky: boolean; $leftOffset: string 
 export const leafCellStateCss = css`
 	position: relative;
 
-	&&[data-tone='warning'] {
-		background: ${t.warningBg};
-	}
-	&&[data-tone='danger'] {
-		background: ${t.removedBg};
-	}
-
+	/*
+	 * \`&&\` doubles the class so these beat the table's base/hover cell
+	 * backgrounds and @wordpress/components' own checkbox rules, which tie
+	 * on specificity and would otherwise win on source order (the Emotion
+	 * cache is prepended).
+	 */
 	&&[data-selection='single'] {
 		background: ${t.singleGroupBg};
 	}
@@ -260,17 +259,25 @@ export const leafCellStateCss = css`
 		box-shadow: inset 0 -2px 0 ${t.removedRule};
 	}
 
+	/* Tone wins over the diff tint; the diff keeps its bottom rule and marker. */
+	&&[data-tone='warning'] {
+		background: ${t.warningBg};
+	}
+	&&[data-tone='danger'] {
+		background: ${t.removedBg};
+	}
+
 	/* Inherited: pale checkbox so overrides stand out. */
-	&[data-diff='inherited'] .components-checkbox-control__input:checked {
+	&&[data-diff='inherited'] .components-checkbox-control__input[type='checkbox']:checked {
 		background: ${t.inheritedControlBg};
 		border-color: ${t.accent};
 	}
-	&[data-diff='inherited'] .components-checkbox-control__checked {
+	&&[data-diff='inherited'] .components-checkbox-control__checked {
 		fill: ${t.inheritedControlFg};
 	}
 
 	/* Removed: red outlined box with a slash. */
-	&[data-diff='removed'] .components-checkbox-control__input {
+	&&[data-diff='removed'] .components-checkbox-control__input[type='checkbox'] {
 		border-color: ${t.removedFg};
 		background-color: #ffffff;
 		background-image: linear-gradient(
@@ -282,19 +289,22 @@ export const leafCellStateCss = css`
 		);
 	}
 
-	&[data-locked='true'] {
+	&&[data-locked='true'] {
 		background: ${t.lockedBg};
 	}
-	&[data-locked='true'] .components-checkbox-control__input,
-	&[data-locked='true'] input[type='radio'] {
-		background-color: ${t.lockedControlBg};
+	&&[data-locked='true'] .components-checkbox-control__input[type='checkbox'],
+	&&[data-locked='true'] input[type='radio'] {
+		background: ${t.lockedControlBg};
 		border-color: ${t.lockedControlBorder};
 		cursor: not-allowed;
 	}
-	&[data-locked='true'] .components-checkbox-control__checked {
+	&&[data-locked='true'] .components-checkbox-control__checked {
 		fill: ${t.lockedFg};
 	}
-	&[data-locked='true'] .components-form-toggle {
+	&&[data-locked='true'] input[type='radio']::before {
+		background: ${t.lockedFg};
+	}
+	&&[data-locked='true'] .components-form-toggle {
 		opacity: 0.45;
 	}
 `;

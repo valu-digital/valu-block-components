@@ -257,17 +257,36 @@ Bulk-action bars are left to the consumer.
 
 ## Performance
 
-Measured with the opt-in test
-(`MATRIX_PERF=1 npx vitest run components/matrix/__tests__/Matrix.perf.test.tsx`)
-for 150 columns × 200 rows (30,000 cells), in happy-dom on an Apple
-Silicon laptop:
+Measured for 150 columns × 200 rows (30,000 cells) on an Apple Silicon
+laptop (0.8.0):
 
-PERF_RESULTS
+| Scenario                                    | happy-dom (test) | Chrome (prod build) |
+| ------------------------------------------- | ---------------- | ------------------- |
+| 15 groups collapsed (summary cells only)    | ~270 ms          | —                   |
+| All groups expanded, mount                  | ~18 s            | ~3–8 s              |
+| All expanded, re-render after one toggle    | ~50 ms           | ~100 ms             |
+| All expanded, native `<input>` `renderCell` | ~5 s             | —                   |
 
-Collapsed groups render one summary cell per row and group, so the
-default view stays small. No virtualization is built in; for grids that
-are expanded wholesale, filter `rows` (search, paging) before passing them
-in.
+The happy-dom numbers come from the opt-in test:
+
+```bash
+NODE_OPTIONS=--max-old-space-size=8192 MATRIX_PERF=1 \
+	npx vitest run components/matrix/__tests__/Matrix.perf.test.tsx
+```
+
+- **Toggles are cheap.** Rows are memoized and only re-render when their
+  own cells, cell state or status change. Keep `rows`, `groups`/`columns`,
+  `expanded`, `baseline`, `labels` and the `render*` props referentially
+  stable (module constants or `useMemo`); a new array or function there
+  re-renders every row. `getCellState` and `getRowStatus` may be inline —
+  their results are compared per row (return string badges or stable
+  nodes).
+- **Mount scales with visible cells.** Most of the cost is one
+  `@wordpress/components` control per cell. Groups start collapsed, so
+  the default view stays small. For very wide, fully expanded grids,
+  filter or page `rows`, or pass a lighter `renderCell`.
+- **No virtualization is built in.** It was not needed for the target
+  sizes above; revisit if grids are routinely expanded wholesale.
 
 ## Rows are not users
 
