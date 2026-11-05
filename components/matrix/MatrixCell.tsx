@@ -51,6 +51,8 @@ interface MatrixCellProps {
 	radioName?: string;
 	/** First column of a single-select group (draws the accent rule). */
 	groupStart?: boolean;
+	/** Latest value at event time; the row may be memoized with a stale `value`. */
+	getValue?: () => ReadonlySet<string>;
 }
 
 const FLAT_GROUP: MatrixColumnGroup = { id: '__flat__', label: '', columns: [] };
@@ -84,7 +86,7 @@ const WarningIcon = () => (
 export const MatrixCell = ({
 	row,
 	column,
-	value,
+	value: valueProp,
 	disabled,
 	variant,
 	onChange,
@@ -96,6 +98,7 @@ export const MatrixCell = ({
 	labels,
 	radioName,
 	groupStart,
+	getValue,
 }: MatrixCellProps) => {
 	const descId = useId();
 	const single = group.selection === 'single';
@@ -105,14 +108,15 @@ export const MatrixCell = ({
 
 	const key = cellKey(row.id, column.id);
 	const checked = isNone
-		? !groupColIds!.some((id) => value.has(cellKey(row.id, id)))
-		: value.has(key);
+		? !groupColIds!.some((id) => valueProp.has(cellKey(row.id, id)))
+		: valueProp.has(key);
 	const locked = !!state?.disabled;
 	const blocked = disabled || locked;
 
 	const toggle = useCallback(
 		(nextChecked: boolean) => {
 			if (blocked) return;
+			const value = getValue?.() ?? valueProp;
 			if (single) {
 				// Radios only fire on select; ignore deselect requests.
 				if (!nextChecked) return;
@@ -130,11 +134,23 @@ export const MatrixCell = ({
 			else next.delete(key);
 			onChange(next, { rowId: row.id, colId: column.id, checked: nextChecked });
 		},
-		[blocked, column.id, groupColIds, isNone, key, onChange, row.id, single, value],
+		[
+			blocked,
+			column.id,
+			getValue,
+			groupColIds,
+			isNone,
+			key,
+			onChange,
+			row.id,
+			single,
+			valueProp,
+		],
 	);
 
 	const reset = useCallback(() => {
 		if (!baseline || blocked) return;
+		const value = getValue?.() ?? valueProp;
 		if (single) {
 			const next = resetRowToBaseline(value, baseline, row.id, groupColIds!);
 			const deselected = groupColIds!.filter(
@@ -151,7 +167,18 @@ export const MatrixCell = ({
 		}
 		const next = resetRowToBaseline(value, baseline, row.id, [column.id]);
 		onChange(next, { rowId: row.id, colId: column.id, checked: next.has(key), reset: true });
-	}, [baseline, blocked, column.id, groupColIds, key, onChange, row.id, single, value]);
+	}, [
+		baseline,
+		blocked,
+		column.id,
+		getValue,
+		groupColIds,
+		key,
+		onChange,
+		row.id,
+		single,
+		valueProp,
+	]);
 
 	const rowText = toPlainText(row.label);
 	const colText = toPlainText(column.label);

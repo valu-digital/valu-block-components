@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { memo, useCallback, useRef } from 'react';
 import { CheckboxControl, ToggleControl } from '@wordpress/components';
 
 import { MatrixCell } from './MatrixCell';
@@ -77,6 +77,10 @@ interface MatrixRowProps {
 	selected?: boolean;
 	onSelectRow?: (rowId: RowId, index: number, selected: boolean, range: boolean) => void;
 	rowHeaderLeftOffset?: string;
+	/** Latest `value` at event time (rows are memoized; see `rowPropsEqual`). */
+	getValue?: () => ReadonlySet<string>;
+	/** Stable retry dispatcher; falls back to `status.onRetry`. */
+	onRetryRow?: (rowId: RowId) => void;
 }
 
 const isGroupExpanded = (group: MatrixColumnGroup, expanded: ReadonlySet<string>): boolean =>
@@ -130,7 +134,7 @@ const resettableColumns = (
 	return out;
 };
 
-export const MatrixRowView = ({
+const MatrixRowViewInner = ({
 	row,
 	groups,
 	master,
@@ -157,6 +161,8 @@ export const MatrixRowView = ({
 	selected = false,
 	onSelectRow,
 	rowHeaderLeftOffset,
+	getValue,
+	onRetryRow,
 }: MatrixRowProps) => {
 	const masterChecked = master ? value.has(cellKey(row.id, master.id)) : true;
 	const masterDisablesRow = master ? master.disablesRow !== false : false;
@@ -167,10 +173,10 @@ export const MatrixRowView = ({
 	const toggleMaster = useCallback(
 		(checked: boolean) => {
 			if (!master) return;
-			const next = toggleCell(value, row.id, master.id, checked);
+			const next = toggleCell(getValue?.() ?? value, row.id, master.id, checked);
 			onChange(next, { rowId: row.id, colId: master.id, checked });
 		},
-		[master, onChange, row.id, value],
+		[getValue, master, onChange, row.id, value],
 	);
 
 	// Row reset: only computed when a baseline is present and the action is enabled.
@@ -184,7 +190,7 @@ export const MatrixRowView = ({
 
 	const resetRow = () => {
 		if (!baseline) return;
-		const next = resetRowToBaseline(value, baseline, row.id, resetCols);
+		const next = resetRowToBaseline(getValue?.() ?? value, baseline, row.id, resetCols);
 		if (onResetRow) onResetRow(row.id, next);
 		else onChange(next, { rowId: row.id, colId: ALL_COLUMNS, checked: false, reset: true });
 	};
@@ -223,7 +229,10 @@ export const MatrixRowView = ({
 						{statusKind === 'error' && status?.onRetry && (
 							<>
 								<span aria-hidden>·</span>
-								<RetryButton type="button" onClick={status.onRetry}>
+								<RetryButton
+									type="button"
+									onClick={onRetryRow ? () => onRetryRow(row.id) : status.onRetry}
+								>
 									{labels.retry}
 								</RetryButton>
 							</>
@@ -267,6 +276,7 @@ export const MatrixRowView = ({
 				diff={isNone ? 'none' : diffState(value, baseline, row.id, col.id)}
 				baseline={baseline}
 				labels={labels}
+				getValue={getValue}
 				radioName={single ? `${rootId}-${row.id}-${group.id}` : undefined}
 				groupStart={single && index === 0}
 			/>
@@ -367,3 +377,101 @@ export const MatrixRowView = ({
 		</tr>
 	);
 };
+
+const sameNode = (a: unknown, b: unknown): boolean => a === b;
+
+const sameCellState = (a?: MatrixCellState, b?: MatrixCellState): boolean =>
+	a === b ||
+	(!!a &&
+		!!b &&
+		!!a.disabled === !!b.disabled &&
+		a.reason === b.reason &&
+		(a.tone ?? 'default') === (b.tone ?? 'default') &&
+		sameNode(a.badge, b.badge));
+
+/** Props compared by identity; anything else gets a row-scoped comparison below. */
+const IDENTITY_KEYS = [
+	'row',
+	'groups',
+	'master',
+	'flat',
+	'expandedGroups',
+	'stickyFirstColumn',
+	'masterLeftOffset',
+	'variant',
+	'onChange',
+	'labels',
+	'renderCell',
+	'renderRowHeader',
+	'renderGroupSummary',
+	'rootId',
+	'rowIndex',
+	'baseline',
+	'onResetRow',
+	'showRowReset',
+	'trackStatus',
+	'selectable',
+	'selected',
+	'onSelectRow',
+	'rowHeaderLeftOffset',
+	'getValue',
+	'onRetryRow',
+] as const satisfies readonly (keyof MatrixRowProps)[];
+
+/**
+ * Re-render a row only when something it shows changed. With large grids a
+ * toggle then re-renders one row instead of all of them.
+ *
+ * - `value`: only this row's cells (all group columns + master) are compared.
+ * - `getCellState`: when its identity changes, results for this row are
+ *   compared field by field (badges by identity — return strings or stable
+ *   nodes to keep this effective).
+ * - `status`: compared by `status`, `message` and whether `onRetry` exists;
+ *   the retry itself is dispatched through `onRetryRow`, which reads the
+ *   latest `getRowStatus`.
+ */
+export const rowPropsEqual = (prev: MatrixRowProps, next: MatrixRowProps): boolean => {
+	for (const k of IDENTITY_KEYS) if (prev[k] !== next[k]) return false;
+
+	const rowId = next.row.id;
+	if (prev.value !== next.value) {
+		if (next.master) {
+			const k = cellKey(rowId, next.master.id);
+			if (prev.value.has(k) !== next.value.has(k)) return false;
+		}
+		for (const g of next.groups) {
+			for (const c of g.columns) {
+				const k = cellKey(rowId, c.id);
+				if (prev.value.has(k) !== next.value.has(k)) return false;
+			}
+		}
+	}
+
+	if (prev.getCellState !== next.getCellState) {
+		if (!prev.getCellState || !next.getCellState) return false;
+		for (const g of next.groups) {
+			for (const c of g.columns) {
+				if (
+					!sameCellState(prev.getCellState(rowId, c.id), next.getCellState(rowId, c.id))
+				) {
+					return false;
+				}
+			}
+		}
+	}
+
+	const a = prev.status;
+	const b = next.status;
+	if (a !== b) {
+		if (!a || !b) return false;
+		if (a.status !== b.status || a.message !== b.message || !!a.onRetry !== !!b.onRetry) {
+			return false;
+		}
+		// Without the stable dispatcher the closure itself must be current.
+		if (!next.onRetryRow && a.onRetry !== b.onRetry) return false;
+	}
+
+	return true;
+};
+
+export const MatrixRowView = memo(MatrixRowViewInner, rowPropsEqual);

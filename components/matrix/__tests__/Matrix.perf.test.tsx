@@ -4,7 +4,11 @@
  * Off by default: rendering 30k WP controls in happy-dom takes seconds and
  * would slow the normal suite. Run it with
  *
- *     MATRIX_PERF=1 npx vitest run components/matrix/__tests__/Matrix.perf.test.tsx
+ *     NODE_OPTIONS=--max-old-space-size=8192 MATRIX_PERF=1 \
+ *         npx vitest run components/matrix/__tests__/Matrix.perf.test.tsx
+ *
+ * The extra heap is for happy-dom: 30k WP CheckboxControls exceed Node's
+ * default heap there (a browser handles it fine).
  *
  * Timings are printed so they can be recorded in the readme's
  * "Performance" section. The assertions only guard against pathological
@@ -66,7 +70,9 @@ run('Matrix — 150 × 200 performance', () => {
 			/>,
 		);
 		const ms = performance.now() - t0;
-		console.log(`[matrix perf] collapsed 15 groups × 200 rows: ${ms.toFixed(0)} ms`);
+		process.stdout.write(
+			`[matrix perf] collapsed 15 groups × 200 rows: ${ms.toFixed(0)} ms` + '\n',
+		);
 		unmount();
 		expect(ms).toBeLessThan(20_000);
 	});
@@ -98,11 +104,40 @@ run('Matrix — 150 × 200 performance', () => {
 		});
 		const update = performance.now() - t1;
 
-		console.log(
+		process.stdout.write(
 			`[matrix perf] expanded 150 cols × 200 rows (30k cells): mount ${mount.toFixed(0)} ms, ` +
-				`re-render after one toggle ${update.toFixed(0)} ms`,
+				`re-render after one toggle ${update.toFixed(0)} ms` +
+				'\n',
 		);
 		unmount();
 		expect(mount).toBeLessThan(120_000);
+	}, 180_000);
+
+	it('expanded with a plain renderCell (control cost baseline)', () => {
+		const t0 = performance.now();
+		const { unmount } = render(
+			<Matrix
+				caption="Perf"
+				rows={rows}
+				groups={groups}
+				value={value}
+				baseline={baseline}
+				onChange={() => {}}
+				expanded={allGroupIds}
+				renderCell={(ctx) => (
+					<input
+						type="checkbox"
+						checked={ctx.checked}
+						onChange={(e) => ctx.toggle(e.currentTarget.checked)}
+					/>
+				)}
+			/>,
+		);
+		const ms = performance.now() - t0;
+		process.stdout.write(
+			`[matrix perf] expanded 30k cells, native input renderCell: ${ms.toFixed(0)} ms\n`,
+		);
+		unmount();
+		expect(ms).toBeLessThan(120_000);
 	}, 180_000);
 });

@@ -105,8 +105,48 @@ export const Matrix = (props: MatrixProps) => {
 	const lastIndexRef = useRef<number | null>(null);
 	const selectedCount = selectableRows ? rows.filter((r) => selected.has(r.id)).length : 0;
 
+	/*
+	 * Rows are memoized and skip re-rendering when their slice of `value`
+	 * is unchanged. Every callback handed to a row therefore reads the
+	 * latest props through this ref instead of closing over them, so a
+	 * skipped row never computes a change from a stale Set.
+	 */
+	const latest = useRef({
+		value,
+		onChange,
+		onResetRow,
+		getRowStatus,
+		selected,
+		rows,
+		onSelectedRowsChange,
+	});
+	latest.current = {
+		value,
+		onChange,
+		onResetRow,
+		getRowStatus,
+		selected,
+		rows,
+		onSelectedRowsChange,
+	};
+
+	const getValue = useCallback(() => latest.current.value, []);
+	const emitChange = useCallback<MatrixProps['onChange']>(
+		(next, change) => latest.current.onChange(next, change),
+		[],
+	);
+	const emitResetRow = useCallback(
+		(rowId: string, next: ReadonlySet<string>) => latest.current.onResetRow?.(rowId, next),
+		[],
+	);
+	const retryRow = useCallback(
+		(rowId: string) => latest.current.getRowStatus?.(rowId)?.onRetry?.(),
+		[],
+	);
+
 	const onSelectRow = useCallback(
 		(rowId: string, index: number, isSelected: boolean, range: boolean) => {
+			const { selected, rows, onSelectedRowsChange } = latest.current;
 			const next = new Set(selected);
 			const anchor = lastIndexRef.current;
 			if (range && anchor !== null && anchor !== index) {
@@ -122,7 +162,7 @@ export const Matrix = (props: MatrixProps) => {
 			lastIndexRef.current = index;
 			onSelectedRowsChange?.(next);
 		},
-		[onSelectedRowsChange, rows, selected],
+		[],
 	);
 
 	const headerSelection = selectableRows
@@ -185,7 +225,8 @@ export const Matrix = (props: MatrixProps) => {
 									stickyFirstColumn={stickyFirstColumn}
 									masterLeftOffset={masterLeftOffset}
 									variant={variant}
-									onChange={onChange}
+									onChange={emitChange}
+									getValue={getValue}
 									labels={resolvedLabels}
 									renderCell={renderCell}
 									renderRowHeader={renderRowHeader}
@@ -194,10 +235,11 @@ export const Matrix = (props: MatrixProps) => {
 									rowIndex={rowIndex}
 									getCellState={getCellState}
 									baseline={baseline}
-									onResetRow={onResetRow}
+									onResetRow={onResetRow ? emitResetRow : undefined}
 									showRowReset={showRowReset}
 									status={getRowStatus?.(row.id)}
 									trackStatus={!!getRowStatus}
+									onRetryRow={retryRow}
 									selectable={selectableRows}
 									selected={selectableRows && selected.has(row.id)}
 									onSelectRow={onSelectRow}

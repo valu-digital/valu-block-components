@@ -66,8 +66,11 @@ function Edit({ attributes, setAttributes }) {
   with optional in-place editable display names per item.
 - [`Matrix`](components/matrix/readme.md) — abstract row × column grid of
   selectable cells with optional collapsible column groups and a sticky
-  master gate column. For permission matrices, feature-flag grids,
-  notification preferences, etc.
+  master gate column. Cells can be locked with a reason and badge, compared
+  against a baseline (inherited / added / removed, with reset), grouped as
+  single-select radios, and rows can show save status and be selected for
+  bulk actions. For permission matrices, feature-flag grids, notification
+  preferences, etc.
 
 ## Scripts
 

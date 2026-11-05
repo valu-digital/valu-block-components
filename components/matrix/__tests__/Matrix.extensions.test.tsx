@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -538,5 +539,86 @@ describe('Matrix — row selection', () => {
 		);
 		expect(screen.queryByRole('checkbox', { name: /Select/ })).toBeNull();
 		expect(screen.getAllByRole('checkbox')).toHaveLength(6);
+	});
+});
+
+describe('Matrix — row memoization', () => {
+	it('re-renders only the row whose cells changed', () => {
+		const renderRowHeader = vi.fn((row: MatrixRow) => <span>{row.label}</span>);
+		const props = {
+			caption: 'X',
+			rows,
+			columns,
+			onChange: () => {},
+			renderRowHeader,
+		};
+		const { rerender } = render(<Matrix {...props} value={new Set()} />);
+		expect(renderRowHeader).toHaveBeenCalledTimes(3);
+		renderRowHeader.mockClear();
+
+		rerender(<Matrix {...props} value={new Set(['u2::read'])} />);
+		expect(renderRowHeader).toHaveBeenCalledTimes(1);
+		expect(renderRowHeader).toHaveBeenCalledWith(rows[1]);
+	});
+
+	it('a skipped row computes its change from the latest value', async () => {
+		const user = userEvent.setup();
+		const calls: ReadonlySet<string>[] = [];
+		const Harness = () => {
+			const [value, setValue] = useState<ReadonlySet<string>>(new Set());
+			return (
+				<Matrix
+					caption="X"
+					rows={rows}
+					columns={columns}
+					value={value}
+					onChange={(next) => {
+						calls.push(next);
+						setValue(next);
+					}}
+				/>
+			);
+		};
+		render(<Harness />);
+		await user.click(screen.getByRole('checkbox', { name: 'Alice — Read' }));
+		await user.click(screen.getByRole('checkbox', { name: 'Bob — Write' }));
+		expect([...calls[1]].sort()).toEqual(['u1::read', 'u2::write']);
+	});
+
+	it('re-renders a row when getCellState results change for it', () => {
+		const props = { caption: 'X', rows, columns, value: new Set<string>(), onChange: () => {} };
+		const { rerender } = render(<Matrix {...props} getCellState={() => undefined} />);
+		rerender(
+			<Matrix
+				{...props}
+				getCellState={(r, c) =>
+					r === 'u3' && c === 'read' ? { disabled: true } : undefined
+				}
+			/>,
+		);
+		expect(screen.getByRole('checkbox', { name: 'Cara — Read' })).toHaveAttribute(
+			'aria-disabled',
+			'true',
+		);
+	});
+
+	it('retry calls the latest getRowStatus onRetry', async () => {
+		const user = userEvent.setup();
+		const first = vi.fn();
+		const second = vi.fn();
+		const props = {
+			caption: 'X',
+			rows: [rows[0]],
+			columns,
+			value: new Set<string>(),
+			onChange: () => {},
+		};
+		const { rerender } = render(
+			<Matrix {...props} getRowStatus={() => ({ status: 'error', onRetry: first })} />,
+		);
+		rerender(<Matrix {...props} getRowStatus={() => ({ status: 'error', onRetry: second })} />);
+		await user.click(screen.getByRole('button', { name: 'Retry' }));
+		expect(first).not.toHaveBeenCalled();
+		expect(second).toHaveBeenCalledTimes(1);
 	});
 });

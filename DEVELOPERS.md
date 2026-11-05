@@ -29,7 +29,7 @@ From the repo root:
 
 ```bash
 npm run typecheck        # tsc --noEmit
-npm test                 # vitest run (25 unit tests)
+npm test                 # vitest run (unit tests; the 150 × 200 Matrix perf test is opt-in, see components/matrix/readme.md)
 npm run test:watch       # vitest in watch mode while iterating
 npm run build            # tsup → dist/ (ESM + CJS + .d.ts)
 npm run dev              # tsup --watch during active development
