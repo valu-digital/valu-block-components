@@ -117,7 +117,11 @@ export function Edit({ attributes, setAttributes }: EditProps) {
 	const withWarnings = (rowId: string, colId: string): MatrixCellState | undefined => {
 		const base = getCellState(rowId, colId);
 		if (base) return base;
-		if (colId === 'publish' && value.has(`${rowId}::publish`) && !value.has(`${rowId}::create`)) {
+		if (
+			colId === 'publish' &&
+			value.has(`${rowId}::publish`) &&
+			!value.has(`${rowId}::create`)
+		) {
 			return { tone: 'warning', reason: __('Requires: Create post', 'valu-cp-demo') };
 		}
 		return undefined;
