@@ -1,4 +1,4 @@
-import { useId, useMemo } from 'react';
+import { useCallback, useId, useMemo, useRef } from 'react';
 
 import { MatrixHeader } from './MatrixHeader';
 import { MatrixRowView } from './MatrixRow';
@@ -9,6 +9,7 @@ import { defaultLabels, normalizeGroups } from './utils';
 import type { MatrixProps } from './types';
 
 const DEFAULT_MAX_HEIGHT = 'calc(100vh - 260px)';
+const EMPTY_SET: ReadonlySet<string> = new Set<string>();
 
 /**
  * `<Matrix />` — abstract row × column grid of selectable cells.
@@ -63,6 +64,14 @@ export const Matrix = (props: MatrixProps) => {
 		labels,
 		className,
 		id,
+		getCellState,
+		baseline,
+		onResetRow,
+		showRowReset,
+		getRowStatus,
+		selectableRows = false,
+		selectedRows,
+		onSelectedRowsChange,
 	} = props;
 
 	const reactId = useId();
@@ -85,7 +94,52 @@ export const Matrix = (props: MatrixProps) => {
 	const cssLength = (v: number | string) => (typeof v === 'number' ? `${v}px` : v);
 	const rowHeaderWidthCss = cssLength(rowHeaderWidth);
 	const masterWidthCss = master ? cssLength(master.width ?? 96) : '0';
-	const masterLeftOffset = rowHeaderWidthCss;
+	const selectWidthCss = '48px';
+	const rowHeaderLeftOffset = selectableRows ? selectWidthCss : '0';
+	const masterLeftOffset = selectableRows
+		? `calc(${selectWidthCss} + ${rowHeaderWidthCss})`
+		: rowHeaderWidthCss;
+
+	// Row selection — controlled via `selectedRows`, operates on the current `rows`.
+	const selected = selectedRows ?? EMPTY_SET;
+	const lastIndexRef = useRef<number | null>(null);
+	const selectedCount = selectableRows ? rows.filter((r) => selected.has(r.id)).length : 0;
+
+	const onSelectRow = useCallback(
+		(rowId: string, index: number, isSelected: boolean, range: boolean) => {
+			const next = new Set(selected);
+			const anchor = lastIndexRef.current;
+			if (range && anchor !== null && anchor !== index) {
+				const [from, to] = anchor < index ? [anchor, index] : [index, anchor];
+				for (let i = from; i <= to; i += 1) {
+					const r = rows[i];
+					if (!r) continue;
+					if (isSelected) next.add(r.id);
+					else next.delete(r.id);
+				}
+			} else if (isSelected) next.add(rowId);
+			else next.delete(rowId);
+			lastIndexRef.current = index;
+			onSelectedRowsChange?.(next);
+		},
+		[onSelectedRowsChange, rows, selected],
+	);
+
+	const headerSelection = selectableRows
+		? {
+				checked: rows.length > 0 && selectedCount === rows.length,
+				indeterminate: selectedCount > 0 && selectedCount < rows.length,
+				onChange: (checked: boolean) => {
+					const next = new Set(selected);
+					for (const r of rows) {
+						if (checked) next.add(r.id);
+						else next.delete(r.id);
+					}
+					lastIndexRef.current = null;
+					onSelectedRowsChange?.(next);
+				},
+			}
+		: undefined;
 
 	return (
 		<EmotionCacheProvider>
@@ -100,6 +154,7 @@ export const Matrix = (props: MatrixProps) => {
 						 * space distributes among them.
 						 */}
 						<colgroup>
+							{selectableRows && <col style={{ width: selectWidthCss }} />}
 							<col style={{ width: rowHeaderWidthCss }} />
 							{master && <col style={{ width: masterWidthCss }} />}
 						</colgroup>
@@ -114,9 +169,11 @@ export const Matrix = (props: MatrixProps) => {
 							onToggleGroup={toggleGroup}
 							labels={resolvedLabels}
 							renderHeader={renderHeader}
+							selection={headerSelection}
+							rowHeaderLeftOffset={rowHeaderLeftOffset}
 						/>
 						<tbody>
-							{rows.map((row) => (
+							{rows.map((row, rowIndex) => (
 								<MatrixRowView
 									key={row.id}
 									row={row}
@@ -133,6 +190,18 @@ export const Matrix = (props: MatrixProps) => {
 									renderCell={renderCell}
 									renderRowHeader={renderRowHeader}
 									renderGroupSummary={renderGroupSummary}
+									rootId={rootId}
+									rowIndex={rowIndex}
+									getCellState={getCellState}
+									baseline={baseline}
+									onResetRow={onResetRow}
+									showRowReset={showRowReset}
+									status={getRowStatus?.(row.id)}
+									trackStatus={!!getRowStatus}
+									selectable={selectableRows}
+									selected={selectableRows && selected.has(row.id)}
+									onSelectRow={onSelectRow}
+									rowHeaderLeftOffset={rowHeaderLeftOffset}
 								/>
 							))}
 						</tbody>

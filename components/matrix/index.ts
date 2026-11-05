@@ -1,16 +1,32 @@
 export { Matrix } from './Matrix';
-export { cellKey, selectionByRow, toggleCell } from './utils';
+export {
+	ALL_COLUMNS,
+	cellKey,
+	diffState,
+	isOverride,
+	noneColumnId,
+	resetRowToBaseline,
+	selectionByRow,
+	selectSingle,
+	toggleCell,
+} from './utils';
 export type {
 	CellContext,
 	ColId,
 	GroupSummaryContext,
+	MatrixCellState,
+	MatrixCellTone,
 	MatrixChange,
 	MatrixColumn,
 	MatrixColumnGroup,
+	MatrixDiffState,
 	MatrixLabels,
 	MatrixMasterColumn,
 	MatrixProps,
 	MatrixRow,
+	MatrixRowStatus,
+	MatrixRowStatusKind,
+	MatrixSelectionMode,
 	MatrixVariant,
 	RowId,
 } from './types';
