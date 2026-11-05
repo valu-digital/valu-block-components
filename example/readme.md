@@ -76,6 +76,15 @@ Pickers shown:
 | Featured category | `term` | category    | 1   | no        |
 | Primary author    | `user` | —           | 1   | no        |
 
+## Matrix demo
+
+The `valu/mx-demo` block renders a permission `<Matrix />` with every 0.8
+extension: a Pro-locked column and an Ultimate-locked group, a baseline
+("profile") diff with per-cell and per-row reset, a single-select MCP
+profile group with a "No MCP" option, a dependency warning tone, fake
+per-row saving (Anna's row always fails, to show the retry), and row
+selection. Insert it from the block inserter ("Matrix Demo").
+
 ## Troubleshooting
 
 - **"run `npm run build` inside the example/ directory"** admin notice

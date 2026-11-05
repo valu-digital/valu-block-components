@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "valu/mx-demo",
+	"title": "Matrix Demo",
+	"category": "widgets",
+	"icon": "grid-view",
+	"description": "Demo block exercising @valu/block-components Matrix: locks, baseline diff, single-select groups, row status and row selection.",
+	"keywords": ["valu", "matrix", "permissions"],
+	"textdomain": "valu-cp-demo",
+	"attributes": {
+		"value": {
+			"type": "array",
+			"default": ["u1::list", "u1::create", "u2::list", "u2::publish", "u2::mcp-writer"]
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": ["wide", "full"]
+	},
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"render": "file:./render.php"
+}

@@ -25,7 +25,7 @@ defined( 'ABSPATH' ) || exit;
 function register_blocks(): void {
 	$build_dir = __DIR__ . '/build';
 
-	$blocks = [ 'cp-demo', 'dp-demo' ];
+	$blocks = [ 'cp-demo', 'dp-demo', 'mx-demo' ];
 	$missing = false;
 	foreach ( $blocks as $slug ) {
 		$path = $build_dir . '/' . $slug;
