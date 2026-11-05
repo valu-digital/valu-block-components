@@ -90,7 +90,10 @@ render a single "n / m" summary cell per row.
 />
 ```
 
-Mark a group as `collapsible: false` to pin it open.
+Mark a group as `collapsible: false` to pin it open. `defaultExpanded: true`
+on a group opens it initially when expansion is uncontrolled (merged with
+the Matrix-level `defaultExpanded`; ignored when `expanded` is passed).
+Before 0.8.0 this field was documented but had no effect.
 
 ### With master column
 
@@ -108,6 +111,186 @@ that row render disabled (set `disablesRow: false` to opt out).
 ```
 
 The master cell's value lives in the same Set at `${rowId}::${master.id}`.
+
+## Cell state, locks and badges
+
+`getCellState(rowId, colId)` returns per-cell state. Disabled cells render
+with `aria-disabled="true"` (they stay focusable), cannot be toggled, and
+use `reason` as their accessible description and tooltip.
+
+```tsx
+<Matrix
+	rows={users}
+	groups={groups}
+	value={value}
+	onChange={onChange}
+	getCellState={(rowId, colId) => {
+		if (!canUse(rowId, colId)) return { disabled: true, reason: 'Role does not allow this' };
+		if (missingDependency(rowId, colId))
+			return { tone: 'warning', reason: 'Requires “Create post”' };
+		return undefined;
+	}}
+/>
+```
+
+| Field      | Type                                 | Effect                                                 |
+| ---------- | ------------------------------------ | ------------------------------------------------------ |
+| `disabled` | `boolean`                            | `aria-disabled`, no toggling, grey control.            |
+| `reason`   | `string`                             | Accessible description (`aria-describedby`) + tooltip. |
+| `badge`    | `ReactNode`                          | Rendered next to the control.                          |
+| `tone`     | `'default' \| 'warning' \| 'danger'` | Tints the cell; `warning` adds a warning icon.         |
+
+`getCellState` runs for every visible leaf cell on every render — keep it a
+lookup, not a computation.
+
+### Column and group locks
+
+`disabled`, `badge` and `description` on a column or group lock all of its
+cells with `description` as the reason. String badges render as a pill with
+a lock icon; pass a node for anything else.
+
+```tsx
+const groups = [
+	{
+		id: 'seo',
+		label: 'Valu AI SEO',
+		disabled: true,
+		badge: 'Ultimate',
+		description: 'Not included in your plan',
+		columns: seoColumns,
+	},
+	{
+		id: 'templates',
+		label: 'Templates',
+		columns: [
+			{ id: 'get', label: 'Get templates' },
+			{
+				id: 'fill',
+				label: 'Fill template',
+				disabled: true,
+				badge: 'Pro',
+				description: 'Requires Pro',
+			},
+		],
+	},
+];
+```
+
+A locked group's collapsed summary shows its `description` instead of the
+count. Groups start collapsed unless opened via `defaultExpanded` (Matrix
+or group level) or `expanded`, so leave `defaultExpanded` off locked
+groups to keep them out of the way.
+
+## Baseline diff
+
+Pass `baseline` (same Set shape as `value`) to compare each cell against a
+reference — e.g. what a user's profile grants.
+
+| `diff`      | In `value` | In `baseline` | Visual                                   |
+| ----------- | ---------- | ------------- | ---------------------------------------- |
+| `inherited` | yes        | yes           | Pale checkbox.                           |
+| `added`     | yes        | no            | Green tint, bottom rule, `+` marker.     |
+| `removed`   | no         | yes           | Red tint, bottom rule, slashed box, `−`. |
+| `none`      | no         | no            | Default.                                 |
+
+State is never colour-only: each override has a marker glyph and an
+accessible description (`labels.diffInherited` / `diffAdded` /
+`diffRemoved`). Override cells get a reset button (shown on hover / focus)
+that restores the baseline and reports
+`onChange(next, { rowId, colId, checked, reset: true })`.
+
+`diffState(value, baseline, rowId, colId)` is exported for consumers that
+need the same classification (e.g. an "overrides" count column).
+
+### Row reset
+
+Pass `onResetRow(rowId, next)` (or `showRowReset`) to show a "Reset to
+baseline" action under the label of rows that differ from the baseline.
+With `onResetRow` the computed Set is handed to you; with only
+`showRowReset` it goes through `onChange` with
+`{ colId: ALL_COLUMNS, reset: true }`. Locked cells and the master column
+are not touched by a row reset.
+
+## Single-select groups
+
+`selection: 'single'` renders the group as radios: selecting one column
+deselects the others in that group for the row. The change reports the
+deselected columns.
+
+```tsx
+{
+	id: 'mcp',
+	label: 'MCP profile',
+	selection: 'single',
+	allowNone: true,            // adds a leading "None" radio
+	noneLabel: 'No MCP',        // optional; defaults to labels.noneOption
+	columns: profiles,
+}
+// onChange(next, { rowId, colId: 'writer', checked: true, deselected: ['translator'] })
+```
+
+The "none" column's id is `noneColumnId(group.id)`; it is never stored in
+`value` — "none" simply means no column of the group is selected.
+`selectSingle(value, rowId, groupColIds, colId | null)` is exported for
+bulk actions that need the same rule.
+
+## Row status
+
+`getRowStatus(rowId)` returns `{ status: 'idle' | 'saving' | 'saved' |
+'error', message?, onRetry? }`. It renders under the row label inside a
+polite `aria-live` region (always present, so updates are announced), with
+the row label prefixed for screen readers. Errors with `onRetry` show a
+retry button.
+
+## Row selection
+
+```tsx
+<Matrix
+	selectableRows
+	selectedRows={selected}
+	onSelectedRowsChange={setSelected}
+	/* … */
+/>
+```
+
+Adds a sticky checkbox column with a tri-state select-all header.
+Select-all acts on the current `rows` only and preserves selected ids that
+are not in the list (e.g. filtered out). Space toggles the focused row;
+Shift+click or Shift+Space selects the range from the last toggled row.
+Bulk-action bars are left to the consumer.
+
+## Performance
+
+Measured for 150 columns × 200 rows (30,000 cells) on an Apple Silicon
+laptop (0.8.0):
+
+| Scenario                                    | happy-dom (test) | Chrome (prod build) |
+| ------------------------------------------- | ---------------- | ------------------- |
+| 15 groups collapsed (summary cells only)    | ~270 ms          | —                   |
+| All groups expanded, mount                  | ~18 s            | ~3–8 s              |
+| All expanded, re-render after one toggle    | ~50 ms           | ~100 ms             |
+| All expanded, native `<input>` `renderCell` | ~5 s             | —                   |
+
+The happy-dom numbers come from the opt-in test:
+
+```bash
+NODE_OPTIONS=--max-old-space-size=8192 MATRIX_PERF=1 \
+	npx vitest run components/matrix/__tests__/Matrix.perf.test.tsx
+```
+
+- **Toggles are cheap.** Rows are memoized and only re-render when their
+  own cells, cell state or status change. Keep `rows`, `groups`/`columns`,
+  `expanded`, `baseline`, `labels` and the `render*` props referentially
+  stable (module constants or `useMemo`); a new array or function there
+  re-renders every row. `getCellState` and `getRowStatus` may be inline —
+  their results are compared per row (return string badges or stable
+  nodes).
+- **Mount scales with visible cells.** Most of the cost is one
+  `@wordpress/components` control per cell. Groups start collapsed, so
+  the default view stays small. For very wide, fully expanded grids,
+  filter or page `rows`, or pass a lighter `renderCell`.
+- **No virtualization is built in.** It was not needed for the target
+  sizes above; revisit if grids are routinely expanded wholesale.
 
 ## Rows are not users
 
@@ -187,30 +370,38 @@ expects in your `onChange`.
 
 ## Props
 
-| Prop                 | Type                     | Default                 | Description                                                                     |
-| -------------------- | ------------------------ | ----------------------- | ------------------------------------------------------------------------------- |
-| `rows`               | `MatrixRow[]`            | _required_              | Rows top-to-bottom.                                                             |
-| `columns`            | `MatrixColumn[]`         | —                       | Flat column list (mutually exclusive with `groups`).                            |
-| `groups`             | `MatrixColumnGroup[]`    | —                       | Grouped column list (mutually exclusive with `columns`).                        |
-| `master`             | `MatrixMasterColumn`     | —                       | Optional sticky gate column.                                                    |
-| `value`              | `ReadonlySet<string>`    | _required_              | Controlled selection. Each entry is `${rowId}::${colId}`.                       |
-| `onChange`           | `(next, change) => void` | _required_              | Fires on every cell toggle.                                                     |
-| `expanded`           | `ReadonlySet<string>`    | —                       | Controlled expanded-group ids.                                                  |
-| `defaultExpanded`    | `ReadonlySet<string>`    | empty                   | Uncontrolled initial expanded set.                                              |
-| `onExpandedChange`   | `(next) => void`         | —                       | Fires when a group is expanded/collapsed.                                       |
-| `variant`            | `'checkbox' \| 'toggle'` | `'checkbox'`            | Default cell control.                                                           |
-| `renderCell`         | `(ctx) => ReactNode`     | —                       | Override the default cell control.                                              |
-| `renderRowHeader`    | `(row) => ReactNode`     | —                       | Override the row-header layout.                                                 |
-| `renderGroupSummary` | `(ctx) => ReactNode`     | —                       | Override the collapsed-group summary cell.                                      |
-| `renderHeader`       | `(column) => ReactNode`  | —                       | Override leaf-column header content.                                            |
-| `stickyHeader`       | `boolean`                | `true`                  | Stick column headers to the top of the viewport.                                |
-| `stickyFirstColumn`  | `boolean`                | `true`                  | Stick the row-header column (and master, if present) to the left.               |
-| `rowHeaderWidth`     | `number \| string`       | `220`                   | Pinned width of the row-header column.                                          |
-| `maxHeight`          | `number \| string`       | `'calc(100vh - 260px)'` | Caps the scroll viewport.                                                       |
-| `caption`            | `string`                 | —                       | Visually-hidden `<caption>` for screen readers.                                 |
-| `labels`             | `MatrixLabels`           | —                       | i18n overrides (`expandGroup`, `collapseGroup`, `groupSummary`, `cellToggled`). |
-| `className`          | `string`                 | —                       | Extra class on the root element.                                                |
-| `id`                 | `string`                 | —                       | Explicit root id; used as ARIA prefix.                                          |
+| Prop                   | Type                                | Default                 | Description                                                       |
+| ---------------------- | ----------------------------------- | ----------------------- | ----------------------------------------------------------------- |
+| `rows`                 | `MatrixRow[]`                       | _required_              | Rows top-to-bottom.                                               |
+| `columns`              | `MatrixColumn[]`                    | —                       | Flat column list (mutually exclusive with `groups`).              |
+| `groups`               | `MatrixColumnGroup[]`               | —                       | Grouped column list (mutually exclusive with `columns`).          |
+| `master`               | `MatrixMasterColumn`                | —                       | Optional sticky gate column.                                      |
+| `value`                | `ReadonlySet<string>`               | _required_              | Controlled selection. Each entry is `${rowId}::${colId}`.         |
+| `onChange`             | `(next, change) => void`            | _required_              | Fires on every cell toggle.                                       |
+| `expanded`             | `ReadonlySet<string>`               | —                       | Controlled expanded-group ids.                                    |
+| `defaultExpanded`      | `ReadonlySet<string>`               | empty                   | Uncontrolled initial expanded set.                                |
+| `onExpandedChange`     | `(next) => void`                    | —                       | Fires when a group is expanded/collapsed.                         |
+| `variant`              | `'checkbox' \| 'toggle'`            | `'checkbox'`            | Default cell control.                                             |
+| `renderCell`           | `(ctx) => ReactNode`                | —                       | Override the default cell control.                                |
+| `renderRowHeader`      | `(row) => ReactNode`                | —                       | Override the row-header layout.                                   |
+| `renderGroupSummary`   | `(ctx) => ReactNode`                | —                       | Override the collapsed-group summary cell.                        |
+| `renderHeader`         | `(column) => ReactNode`             | —                       | Override leaf-column header content.                              |
+| `stickyHeader`         | `boolean`                           | `true`                  | Stick column headers to the top of the viewport.                  |
+| `stickyFirstColumn`    | `boolean`                           | `true`                  | Stick the row-header column (and master, if present) to the left. |
+| `rowHeaderWidth`       | `number \| string`                  | `220`                   | Pinned width of the row-header column.                            |
+| `maxHeight`            | `number \| string`                  | `'calc(100vh - 260px)'` | Caps the scroll viewport.                                         |
+| `caption`              | `string`                            | —                       | Visually-hidden `<caption>` for screen readers.                   |
+| `labels`               | `MatrixLabels`                      | —                       | i18n overrides; see `MatrixLabels` below.                         |
+| `getCellState`         | `(rowId, colId) => MatrixCellState` | —                       | Per-cell lock / reason / badge / tone.                            |
+| `baseline`             | `ReadonlySet<string>`               | —                       | Reference selection; enables diff states and reset.               |
+| `onResetRow`           | `(rowId, next) => void`             | —                       | Row reset handler; shows the row reset action.                    |
+| `showRowReset`         | `boolean`                           | `!!onResetRow`          | Show row reset; without `onResetRow` it goes through `onChange`.  |
+| `getRowStatus`         | `(rowId) => MatrixRowStatus`        | —                       | Save status under the row label (aria-live).                      |
+| `selectableRows`       | `boolean`                           | `false`                 | Leading select column with tri-state select-all.                  |
+| `selectedRows`         | `ReadonlySet<RowId>`                | —                       | Controlled row selection.                                         |
+| `onSelectedRowsChange` | `(next) => void`                    | —                       | Fires with the next selected-row Set.                             |
+| `className`            | `string`                            | —                       | Extra class on the root element.                                  |
+| `id`                   | `string`                            | —                       | Explicit root id; used as ARIA prefix.                            |
 
 ### `MatrixRow`
 
@@ -230,7 +421,9 @@ expects in your `onChange`.
 interface MatrixColumn {
 	id: string;
 	label: ReactNode;
-	description?: string;
+	description?: string; // tooltip; lock reason when disabled
+	disabled?: boolean; // lock every cell in the column
+	badge?: ReactNode; // header chip, e.g. 'Pro'
 }
 
 interface MatrixColumnGroup {
@@ -239,6 +432,12 @@ interface MatrixColumnGroup {
 	columns: MatrixColumn[];
 	collapsible?: boolean; // default true
 	defaultExpanded?: boolean; // default false
+	disabled?: boolean; // lock every cell in the group
+	badge?: ReactNode; // header chip, e.g. 'Ultimate'
+	description?: string; // lock reason; collapsed summary text when locked
+	selection?: 'multiple' | 'single'; // default 'multiple'
+	allowNone?: boolean; // single only: leading "none" radio
+	noneLabel?: ReactNode;
 }
 ```
 
@@ -264,10 +463,23 @@ label: 'Search Console Access', width: 180 }}`.
 ```ts
 interface MatrixChange {
 	rowId: string;
-	colId: string;
+	colId: string; // ALL_COLUMNS ('*') for a row reset
 	checked: boolean;
+	reset?: boolean; // restores the baseline
+	deselected?: string[]; // single-select: columns cleared by this change
 }
 ```
+
+### `MatrixLabels`
+
+Every key has an English default; pass translated strings from
+`@wordpress/i18n`.
+
+`expandGroup`, `collapseGroup`, `groupSummary(selected, total)`,
+`cellToggled(row, col, checked)`, `diffInherited`, `diffAdded`,
+`diffRemoved`, `resetCell(row, col)`, `resetRow`, `resetRowLabel(row)`,
+`noneOption`, `statusSaving`, `statusSaved`, `statusError`, `retry`,
+`selectRow(row)`, `selectAllRows`.
 
 ## Accessibility
 
@@ -278,6 +490,14 @@ label>"` so screen readers announce the cell context without relying on
   table navigation.
 - Cells disabled by the master gate use the underlying control's `disabled`
   state (not just visual opacity).
+- Cells locked by `getCellState` or a column/group lock use
+  `aria-disabled="true"` and stay focusable; the reason is linked with
+  `aria-describedby` and repeated as the cell's tooltip.
+- Diff states are never colour-only: a marker glyph plus an accessible
+  description per cell.
+- Single-select groups use native radios sharing one `name` per row and
+  group, so arrow keys move within the group.
+- Row status lives in a polite, atomic `aria-live` region per row.
 
 ## Non-goals
 

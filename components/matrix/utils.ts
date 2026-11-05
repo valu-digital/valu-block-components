@@ -1,4 +1,18 @@
-import type { ColId, MatrixColumn, MatrixColumnGroup, MatrixLabels, RowId } from './types';
+import type {
+	ColId,
+	MatrixCellState,
+	MatrixColumn,
+	MatrixColumnGroup,
+	MatrixDiffState,
+	MatrixLabels,
+	RowId,
+} from './types';
+
+/** `MatrixChange.colId` of a whole-row reset. */
+export const ALL_COLUMNS = '*';
+
+/** Column id of the synthetic "none" radio in a single-select group. */
+export const noneColumnId = (groupId: string): ColId => `__none__:${groupId}`;
 
 /** Selection-set key for a single cell. */
 export const cellKey = (rowId: RowId, colId: ColId): string => `${rowId}::${colId}`;
@@ -29,6 +43,111 @@ export const toggleCell = (
 	if (checked) next.add(cellKey(rowId, colId));
 	else next.delete(cellKey(rowId, colId));
 	return next;
+};
+
+/**
+ * Diff state of one cell against a baseline selection.
+ *
+ * @example
+ * diffState(value, baseline, 'user-42', 'edit')  // 'added'
+ */
+export const diffState = (
+	value: ReadonlySet<string>,
+	baseline: ReadonlySet<string> | undefined,
+	rowId: RowId,
+	colId: ColId,
+): MatrixDiffState => {
+	if (!baseline) return 'none';
+	const key = cellKey(rowId, colId);
+	const inValue = value.has(key);
+	const inBaseline = baseline.has(key);
+	if (inValue && inBaseline) return 'inherited';
+	if (inValue) return 'added';
+	if (inBaseline) return 'removed';
+	return 'none';
+};
+
+/** True for `added` / `removed` — cells that differ from the baseline. */
+export const isOverride = (diff: MatrixDiffState): boolean =>
+	diff === 'added' || diff === 'removed';
+
+/**
+ * Restore the given columns of one row to the baseline, returning the next
+ * Set (always a new instance).
+ */
+export const resetRowToBaseline = (
+	value: ReadonlySet<string>,
+	baseline: ReadonlySet<string>,
+	rowId: RowId,
+	colIds: Iterable<ColId>,
+): Set<string> => {
+	const next = new Set(value);
+	for (const colId of colIds) {
+		const key = cellKey(rowId, colId);
+		if (baseline.has(key)) next.add(key);
+		else next.delete(key);
+	}
+	return next;
+};
+
+/**
+ * Select one column of a single-select group for a row, deselecting the
+ * group's other columns. Pass `null` to clear the group for the row.
+ */
+export const selectSingle = (
+	value: ReadonlySet<string>,
+	rowId: RowId,
+	groupColIds: readonly ColId[],
+	colId: ColId | null,
+): { next: Set<string>; deselected: ColId[] } => {
+	const next = new Set(value);
+	const deselected: ColId[] = [];
+	for (const id of groupColIds) {
+		if (id === colId) continue;
+		const key = cellKey(rowId, id);
+		if (next.delete(key)) deselected.push(id);
+	}
+	if (colId !== null) next.add(cellKey(rowId, colId));
+	return { next, deselected };
+};
+
+/**
+ * Leaf columns a group renders when expanded. Single-select groups with
+ * `allowNone` get a synthetic leading "none" column.
+ */
+export const visibleColumnsOf = (group: MatrixColumnGroup, noneLabel: string): MatrixColumn[] => {
+	if (group.selection !== 'single' || !group.allowNone) return group.columns;
+	return [
+		{
+			id: noneColumnId(group.id),
+			label: group.noneLabel ?? noneLabel,
+			disabled: group.disabled,
+			description: group.description,
+		},
+		...group.columns,
+	];
+};
+
+/**
+ * Merge group / column locks with the consumer's per-cell state. A lock
+ * anywhere wins; the most specific reason wins.
+ */
+export const mergeCellState = (
+	group: MatrixColumnGroup,
+	column: MatrixColumn,
+	custom: MatrixCellState | undefined,
+): MatrixCellState | undefined => {
+	const groupLocked = !!group.disabled;
+	const columnLocked = !!column.disabled;
+	if (!groupLocked && !columnLocked) return custom;
+	return {
+		...custom,
+		disabled: true,
+		reason:
+			custom?.reason ??
+			(columnLocked ? column.description : undefined) ??
+			(groupLocked ? group.description : undefined),
+	};
 };
 
 /**
@@ -66,6 +185,21 @@ export const defaultLabels = (overrides: MatrixLabels = {}): Required<MatrixLabe
 		overrides.cellToggled ??
 		((rowLabel, colLabel, checked) =>
 			checked ? `${colLabel} added to ${rowLabel}` : `${colLabel} removed from ${rowLabel}`),
+	diffInherited: overrides.diffInherited ?? 'Inherited from baseline',
+	diffAdded: overrides.diffAdded ?? 'Added — not in baseline',
+	diffRemoved: overrides.diffRemoved ?? 'Removed — in baseline',
+	resetCell:
+		overrides.resetCell ??
+		((rowLabel, colLabel) => `Reset ${colLabel} for ${rowLabel} to baseline`),
+	resetRow: overrides.resetRow ?? 'Reset to baseline',
+	resetRowLabel: overrides.resetRowLabel ?? ((rowLabel) => `Reset ${rowLabel} to baseline`),
+	noneOption: overrides.noneOption ?? 'None',
+	statusSaving: overrides.statusSaving ?? 'Saving…',
+	statusSaved: overrides.statusSaved ?? 'Saved',
+	statusError: overrides.statusError ?? 'Not saved',
+	retry: overrides.retry ?? 'Retry',
+	selectRow: overrides.selectRow ?? ((rowLabel) => `Select ${rowLabel}`),
+	selectAllRows: overrides.selectAllRows ?? 'Select all rows',
 });
 
 /** Stringify a ReactNode as best we can for `aria-label`. */

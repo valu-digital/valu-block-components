@@ -1,4 +1,4 @@
-import { useId, useMemo } from 'react';
+import { useCallback, useId, useMemo, useRef } from 'react';
 
 import { MatrixHeader } from './MatrixHeader';
 import { MatrixRowView } from './MatrixRow';
@@ -9,6 +9,7 @@ import { defaultLabels, normalizeGroups } from './utils';
 import type { MatrixProps } from './types';
 
 const DEFAULT_MAX_HEIGHT = 'calc(100vh - 260px)';
+const EMPTY_SET: ReadonlySet<string> = new Set<string>();
 
 /**
  * `<Matrix />` — abstract row × column grid of selectable cells.
@@ -63,6 +64,14 @@ export const Matrix = (props: MatrixProps) => {
 		labels,
 		className,
 		id,
+		getCellState,
+		baseline,
+		onResetRow,
+		showRowReset,
+		getRowStatus,
+		selectableRows = false,
+		selectedRows,
+		onSelectedRowsChange,
 	} = props;
 
 	const reactId = useId();
@@ -75,9 +84,23 @@ export const Matrix = (props: MatrixProps) => {
 
 	const resolvedLabels = useMemo(() => defaultLabels(labels), [labels]);
 
+	/*
+	 * Uncontrolled initial state: the Matrix-level `defaultExpanded` plus
+	 * every group with `defaultExpanded: true`. Ignored when `expanded` is
+	 * controlled, and only read on mount (the hook's initial state).
+	 */
+	const initialExpanded = useMemo(() => {
+		if (expanded !== undefined || flat) return defaultExpanded;
+		const fromGroups = groups.filter((g) => g.defaultExpanded).map((g) => g.id);
+		if (fromGroups.length === 0) return defaultExpanded;
+		return new Set([...(defaultExpanded ?? []), ...fromGroups]);
+		// Initial state only — later changes are intentionally not tracked.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
 	const { expanded: expandedGroups, toggle: toggleGroup } = useExpandedGroups({
 		expanded,
-		defaultExpanded,
+		defaultExpanded: initialExpanded,
 		onChange: onExpandedChange,
 	});
 
@@ -85,7 +108,92 @@ export const Matrix = (props: MatrixProps) => {
 	const cssLength = (v: number | string) => (typeof v === 'number' ? `${v}px` : v);
 	const rowHeaderWidthCss = cssLength(rowHeaderWidth);
 	const masterWidthCss = master ? cssLength(master.width ?? 96) : '0';
-	const masterLeftOffset = rowHeaderWidthCss;
+	const selectWidthCss = '48px';
+	const rowHeaderLeftOffset = selectableRows ? selectWidthCss : '0';
+	const masterLeftOffset = selectableRows
+		? `calc(${selectWidthCss} + ${rowHeaderWidthCss})`
+		: rowHeaderWidthCss;
+
+	// Row selection — controlled via `selectedRows`, operates on the current `rows`.
+	const selected = selectedRows ?? EMPTY_SET;
+	const lastIndexRef = useRef<number | null>(null);
+	const selectedCount = selectableRows ? rows.filter((r) => selected.has(r.id)).length : 0;
+
+	/*
+	 * Rows are memoized and skip re-rendering when their slice of `value`
+	 * is unchanged. Every callback handed to a row therefore reads the
+	 * latest props through this ref instead of closing over them, so a
+	 * skipped row never computes a change from a stale Set.
+	 */
+	const latest = useRef({
+		value,
+		onChange,
+		onResetRow,
+		getRowStatus,
+		selected,
+		rows,
+		onSelectedRowsChange,
+	});
+	latest.current = {
+		value,
+		onChange,
+		onResetRow,
+		getRowStatus,
+		selected,
+		rows,
+		onSelectedRowsChange,
+	};
+
+	const getValue = useCallback(() => latest.current.value, []);
+	const emitChange = useCallback<MatrixProps['onChange']>(
+		(next, change) => latest.current.onChange(next, change),
+		[],
+	);
+	const emitResetRow = useCallback(
+		(rowId: string, next: ReadonlySet<string>) => latest.current.onResetRow?.(rowId, next),
+		[],
+	);
+	const retryRow = useCallback(
+		(rowId: string) => latest.current.getRowStatus?.(rowId)?.onRetry?.(),
+		[],
+	);
+
+	const onSelectRow = useCallback(
+		(rowId: string, index: number, isSelected: boolean, range: boolean) => {
+			const { selected, rows, onSelectedRowsChange } = latest.current;
+			const next = new Set(selected);
+			const anchor = lastIndexRef.current;
+			if (range && anchor !== null && anchor !== index) {
+				const [from, to] = anchor < index ? [anchor, index] : [index, anchor];
+				for (let i = from; i <= to; i += 1) {
+					const r = rows[i];
+					if (!r) continue;
+					if (isSelected) next.add(r.id);
+					else next.delete(r.id);
+				}
+			} else if (isSelected) next.add(rowId);
+			else next.delete(rowId);
+			lastIndexRef.current = index;
+			onSelectedRowsChange?.(next);
+		},
+		[],
+	);
+
+	const headerSelection = selectableRows
+		? {
+				checked: rows.length > 0 && selectedCount === rows.length,
+				indeterminate: selectedCount > 0 && selectedCount < rows.length,
+				onChange: (checked: boolean) => {
+					const next = new Set(selected);
+					for (const r of rows) {
+						if (checked) next.add(r.id);
+						else next.delete(r.id);
+					}
+					lastIndexRef.current = null;
+					onSelectedRowsChange?.(next);
+				},
+			}
+		: undefined;
 
 	return (
 		<EmotionCacheProvider>
@@ -100,6 +208,7 @@ export const Matrix = (props: MatrixProps) => {
 						 * space distributes among them.
 						 */}
 						<colgroup>
+							{selectableRows && <col style={{ width: selectWidthCss }} />}
 							<col style={{ width: rowHeaderWidthCss }} />
 							{master && <col style={{ width: masterWidthCss }} />}
 						</colgroup>
@@ -114,9 +223,11 @@ export const Matrix = (props: MatrixProps) => {
 							onToggleGroup={toggleGroup}
 							labels={resolvedLabels}
 							renderHeader={renderHeader}
+							selection={headerSelection}
+							rowHeaderLeftOffset={rowHeaderLeftOffset}
 						/>
 						<tbody>
-							{rows.map((row) => (
+							{rows.map((row, rowIndex) => (
 								<MatrixRowView
 									key={row.id}
 									row={row}
@@ -128,11 +239,25 @@ export const Matrix = (props: MatrixProps) => {
 									stickyFirstColumn={stickyFirstColumn}
 									masterLeftOffset={masterLeftOffset}
 									variant={variant}
-									onChange={onChange}
+									onChange={emitChange}
+									getValue={getValue}
 									labels={resolvedLabels}
 									renderCell={renderCell}
 									renderRowHeader={renderRowHeader}
 									renderGroupSummary={renderGroupSummary}
+									rootId={rootId}
+									rowIndex={rowIndex}
+									getCellState={getCellState}
+									baseline={baseline}
+									onResetRow={onResetRow ? emitResetRow : undefined}
+									showRowReset={showRowReset}
+									status={getRowStatus?.(row.id)}
+									trackStatus={!!getRowStatus}
+									onRetryRow={retryRow}
+									selectable={selectableRows}
+									selected={selectableRows && selected.has(row.id)}
+									onSelectRow={onSelectRow}
+									rowHeaderLeftOffset={rowHeaderLeftOffset}
 								/>
 							))}
 						</tbody>
